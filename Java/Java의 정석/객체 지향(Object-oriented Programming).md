@@ -131,4 +131,129 @@ class Car{
 Car c = new Car("red",4);
 ```
 
+this / this();
+
+- this: 인스턴스 자신을 가리키는 참조변수, 인스턴스의 주소가 저장되어 있다.
+- this(): 생성자, 같은 클래스의 다른 생성자를 호출할 때 사용한다.
+
+* * *
+
+### 클래스의 재사용
+
+- 상속
+  
+  > '은 ~이다(is-a)'
+
+```java
+class Parent{ }
+class Child extends Parent{}
+```
+
+포함(composite) 관계: 한 클래스의 멤버변수로 다른 클래스 타입의 참조변수를 선언
+
+> '~은 ~을 가지고 있다(has-a)'
+
+```java
+class Circle{
+    int x;
+    int y;
+    int r;
+}
+class Point{
+    int x;
+    int y;
+}
+// 포함
+class Circle{
+    Point p = new Point();
+    int r;
+}
+// 상속
+class Circle extends Pont{
+    int r;
+}
+```
+
+오버라이딩(overriding)
+
+- 조상 클래스로부터 상속받은 메서드의 내용을 변경하는 것
+  
+  - 오버라이딩은 메서드의 내용만 새로 작성하는 것이므로 메서드의 선언부는 조상의 것과 완전 일치해야 한다.
+  
+  - 조상 클래스의 메서드보다 많은 수의 예외를 선언할 수 없다.
+  
+  - 접근 제어자는 조상 클래스의 메서드보다 좁은 범위로 변경할 수 없다.
+    
+    > protected -> private는 안됨
+
+**오버로딩 vs 오버라이딩**
+
+- 오버로딩:        기존에 없는 새로운 메서드를 정의하는 것
+- 오버라이딩:    상속받은 메서드의 내용을 변경하는것
+
+* * *
+
+### 패키지
+
+클래스의 묶음이다, 클래스가 물리적으로 하나의 클래스파일(.class)인 것과 같이 패키지는 물리적으로 하나의 디렉토리이다.
+
+```java
+package 패키지명;
+```
+
+> String클래스는 java.util.String이다.
+
+### import
+
+클래스의 패키지 명을 미리 명시해주어 클래스이름에서 패키지명을 생략할 수 있다.
+
+```java
+java.util.Date d = new java.util.Date();
+
+import java.util;
+import java.*;
+Date d = new Date();
+```
+
+### static import
+
+static멤버를 호출 할 때 클래스의 이름을 생략할 수 있다.
+
+```java
+import static java.lang.System.out;
+import static java.lang.Math.random;
+
+// 아래 두 코드는 동일
+System.out.println(Math.random());
+out.println(random());
+```
+
+* * *
+
+### 캡슐화와 접근제어자
+
+접근제어자를 사용하는 이유
+
+- 외부로붙터 데이터를 보호하기 위해서
+- 외부에는 불필요한, 내부적으로만 사용되는, 부분을 감추기 위해서
+
+```java
+public class time{
+    private int hour;
+    // 상속에서 사용할 경우 자식클래스 접근을 위해 protected로 변경
+    public void setHour(int hour){
+        this.hour = hour;
+    }
+}
+```
+
+### 다형성
+
+서로 상속관계에 있을 경우, 조상 클래스 타입의 참조변수로 자손 클래스의 인슽턴스를 참조하도록 하는 것이 가능
+
+```java
+Tv t = new SmartTv(); // 조상타입 참조변수 = new 자손 타입 인스턴스 참조();
+// Tv 클래스에 정의되지 않은 데이터와 메서드는 참조변수 t로 사용불가
+```
+
 
