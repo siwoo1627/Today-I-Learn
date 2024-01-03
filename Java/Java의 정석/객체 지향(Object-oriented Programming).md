@@ -256,4 +256,172 @@ Tv t = new SmartTv(); // 조상타입 참조변수 = new 자손 타입 인스턴
 // Tv 클래스에 정의되지 않은 데이터와 메서드는 참조변수 t로 사용불가
 ```
 
+### 참조변수의 형변환
+
+조상타입 <-> 자식타입
+
+> 자식타입 <-> 자식타입 은 안됨
+
+```java
+class Ex7_7 {
+    public static void main(String args[]) {
+        Car car = null;
+        FireEngine fe = new FireEngine();
+        FireEngine fe2 = null;
+
+        fe.water();
+        car = fe;    // car = (Car)fe;에서 형변환이 생략됨
+//        car.water();
+        fe2 = (FireEngine)car; // 자손타입 ← 조상타입. 형변환 생략 불가
+        fe2.water();
+    }
+}
+
+class Car {
+    String color;
+    int door;
+
+    void drive() {     // 운전하는 기능
+        System.out.println("drive, Brrrr~");
+    }
+
+    void stop() {      // 멈추는 기능    
+        System.out.println("stop!!!");    
+    }
+}
+
+class FireEngine extends Car {    // 소방차
+    void water() {    // 물을 뿌리는 기능
+        System.out.println("water!!!");
+    }
+}
+```
+
+* * * 
+
+### 추상 클래스, 추상 메서드
+
+추상 클래스: 인스턴스 생성불가, 미완성 설계도
+
+```java
+absctract class 클래스이름{ }
+```
+
+추상메서드
+
+- 메서드 선언을 통해 상속받는 자손클래스에 추상 메서드를 반드시 오버라이딩해야한다.
+
+```java
+// 구현부가 없으므로 {} 대신 ;를 붙여준다.
+abstract 리턴타입 메서드이름();
+```
+
+* * *
+
+### 인터페이스
+
+인터페이스: 일종의 추상클래스, 기본설계도
+
+- 모든 멤버변수는 public static final이어야하고 생략가능
+
+- 모든 메서드는 public abstract이고 생략가능
+  
+  > 단, static메서드와 디폴트 메서드는 예외
+
+```java
+interface 인터페이스이름{
+    public static final 타입 상수이름 = 값;
+    public abstract 메서드이름(매개변수목록);
+}
+```
+
+인터페이스부터만 상속가능하며 다중상속가능
+
+```java
+interface Fightable extends Movalbe, Attackable{}
+```
+
+인터페이스 구현
+
+```java
+class 클래스 이름 (extends 조상클래스) implements 인터페이스이름{
+    // 인터페이스에 정의된 추상메서드를 모두 구현해야한다.
+}
+```
+
+* * *
+
+### 내부클래스(inner class)
+
+클래스 내에 선언된 클래스
+
+- 내부 클래스에서 외부 클래스의 멤버들을 쉽게 접근할 수 있다.
+- 코드의 복잡성을 줄일 수 있다(캡슐화).
+
+```java
+class A{
+    class B{
+    }
+}
+```
+
+| 내부클래스    | 특징                                           |
+| -------- | -------------------------------------------- |
+| 인스턴스 클래스 | 외부클래스의 멤버변수 위치에 선언하며, 인스턴스 멤버처럼 다루어짐         |
+| 스태틱 클래스  | 외부클래스의 멤버변수 위치에 선언하며, 외부 static 멤버처럼 다루어짐    |
+| 지역 클래스   | 외부 클래스의 메서드나 초기화 블럭 안에 선언하며, 선언된 영역 내부에서만 사용 |
+| 익명 클래스   | 클래스의 선언과 객체의 생성을 동시에 하는 이름없는 클래스(일회용)        |
+
+```java
+class Outer2 {
+    class InstanceInner {    // 인스턴스 클래스
+        int iv = 100;
+    }
+
+    static class StaticInner {    // 스태틱 클래스
+        int iv = 200;
+        static int cv = 300;
+    }
+
+    void myMethod() {
+        class LocalInner {    // 지역 클래스
+            int iv = 400;
+        }
+    }
+}
+
+class Ex7_15 {
+    public static void main(String[] args) {
+        // 인스턴스클래스의 인스턴스를 생성하려면
+        // 외부 클래스의 인스턴스를 먼저 생성해야 한다.
+        Outer2 oc = new Outer2();
+        Outer2.InstanceInner ii = oc.new InstanceInner();
+
+        System.out.println("ii.iv : "+ ii.iv);
+        System.out.println("Outer2.StaticInner.cv : "+Outer2.StaticInner.cv);
+
+       // 스태틱 내부 클래스의 인스턴스는 외부 클래스를 먼저 생성하지 않아도 된다.
+        Outer2.StaticInner si = new Outer2.StaticInner();
+        System.out.println("si.iv : "+ si.iv);
+    }
+}
+```
+
+```java
+import java.awt.*;
+import java.awt.event.*;
+
+class Ex7_19 {
+    public static void main(String[] args) {
+        Button b = new Button("Start");
+        b.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("ActionEvent occurred!!!");
+                }
+            } // 익명 클래스의 끝
+        );
+    } // main의 끝
+} 
+```
+
 
