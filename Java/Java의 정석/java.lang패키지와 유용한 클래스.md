@@ -61,6 +61,24 @@ System.out.println(s.equals(s2)); // true
 
 ### Math클래스
 
-![Math 클래스](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/ddfa7cb8-9628-4ac2-b339-81abc93c6747)
+![Math메서드](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/ddfa7cb8-9628-4ac2-b339-81abc93c6747)
+
+### wrapper클래스
+
+기본형 변수를 객체로 변환할 때 사용하는 변수
+
+> 매개변수로 객체를 요루, 기본형 값이 아닌 객체로 저장해야할 때, 객체간의 비교가 필요할 때 등
+
+```java
+Integer i = new Integer(100);
+Long l = new Long(100);
+```
+
+- 문자열을 숫자로 변환
+  
+  ```java
+  int i = Integer.parseInt("100"); // 문자열을 기본형으로 변환
+  Integer i = Integer.valueOf("100") // 문자열을 래퍼 클래스 타입으로 반환
+  ```
 
 
