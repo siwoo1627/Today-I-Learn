@@ -14,6 +14,6 @@
   - [네트워킹](https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%82%B9.md)
  
 ## Servlet & JSP
-  - [웹 기본](https://github.com/siwoo1627/Today-I-Learn/blob/main/Servlet%20%26%20JSP/Servlet.md)
+  - [웹 기본](https://github.com/siwoo1627/Today-I-Learn/blob/main/Servlet%20%26%20JSP/%EC%9B%B9%20%EA%B8%B0%EB%B3%B8.md)
 ## Git
 - [MarkDown 사용법](https://github.com/siwoo1627/Today-I-Learn/blob/main/Git/%EB%A7%88%ED%81%AC%EB%8B%A4%EC%9A%B4%20%EC%82%AC%EC%9A%A9%EB%B2%95%20%EC%A0%95%EB%A6%AC.md)
