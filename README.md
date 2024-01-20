@@ -3,7 +3,7 @@
 ## Java
 <ul><li>Java의 정석</li>
 <ul><li><details><summary>접기/펼치기</summary>
-	<ul><li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EC%9E%90%EB%B0%94%EC%9D%98%20%ED%8A%B9%EC%A7%95%EA%B3%BC%20%EB%B3%80%EC%88%98.md">자바의 특징과 변수</a></li>
+	<ul><li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/Basic.md">Basic</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EA%B0%9D%EC%B2%B4%20%EC%A7%80%ED%96%A5(Object-oriented%20Programming).md">객체 지향(Object-oriented Programming)</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EC%98%88%EC%99%B8%EC%B2%98%EB%A6%AC%20(Exception%20handleing).md">예외처리 (Exception handleing)</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/java.lang%ED%8C%A8%ED%82%A4%EC%A7%80%EC%99%80%20%EC%9C%A0%EC%9A%A9%ED%95%9C%20%ED%81%B4%EB%9E%98%EC%8A%A4.md">java.lang패키지와 유용한 클래스</a></li>
