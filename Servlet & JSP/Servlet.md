@@ -1,3 +1,5 @@
+### 서블릿 구현과 실행
+
 실제 애플리케이션의 루트 디렉터리는 "WebContent" 이다.
 
 -> url의 /에서 접근
@@ -13,32 +15,6 @@ Java SE 프로그램은 개발자가 main() 메소드 안에 구현한 순서대
 그러나 Java EE 기반 프로그램은 실행의 흐름을 컨테이너가 제어한다.
 
 이처럼 개발자가 아닌 제 3자가 프로그램의 실행 흐름을 제어하는 것을 IoC(Inversion of Control), "제어의 역전"이라고 한다.
-
-
-서블릿 실행순서
-```mermaid
-graph LR
-A[client]-->|요청 정보|B[웹서버]
-B[웹서버] -->|응답 정보|A[client]
-B[웹서버] <-->C[서블릿 컨테이너]
-C -->D{최초 요청}
-D -->|Yes|E[메모리 로딩]
-E -->F[객체생성]
-F -->H[init]
-H -->J[HttpServletRequest]
-D -->|No|J[HttpServletRequest]
-J -->K[HttpServletRespons]
-K -->L[Service]
-
-```
-
-1. 클라이언트로부터 처리 요청받음: 요청받은 페이지가 서블릿이면 서블릿 컨테이너에 처리를 넘기고, 서블릿 컨테이너는 요청받은 서블릿을 WEB-INF/classes나 WEB-INF/lib에서 찾아서 실행 준비를 한다.
-2. 최초의 요청 여부 판단: 서블릿 컨테이너는 현재 실행할 서블릿이 최초의 요청인지 판단하고 실행할 서블릿 객체가 메모리에 없으면 최초 요청이고, 이미 있으면 최초의 요청이 아닌 것으로 판단한다.
-3. 서블릿 객체 생성: 서블릿 컨테이너는 요청받은 서블릿이 최초의 요청이라면 해당 서블릿을 메모리에 로딩하고 객체를 생성한다. 일반 자바 객체는 new명령문으로 여러 개의 객체를 언제든지 직접 생성할 수 있지만, 서블릿은 최초 요청이 들어왔을 때 한 번만 객체를 생성하고 이때 생성된 객체를 계속 사용한다.
-4. init() 메소드 실행: 주로 객체의 초기화 작업이 구현되어 있다.
-5. service() 메소드 실행: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다.
-
-
 
 ```java
 package com.edu.test;
@@ -107,8 +83,115 @@ public class SendRedirectTestServlet extends HttpServlet {
 
 ***
 
+### 요청정보와 응답정보
+
 ![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/3df6d176-e5d9-45c3-b0e1-4f0533d710fd)
 
+1. 클라이언트로부터 처리 요청받음: 요청받은 페이지가 서블릿이면 서블릿 컨테이너에 처리를 넘기고, 서블릿 컨테이너는 요청받은 서블릿을 WEB-INF/classes나 WEB-INF/lib에서 찾아서 실행 준비를 한다.
+2. 최초의 요청 여부 판단: 서블릿 컨테이너는 현재 실행할 서블릿이 최초의 요청인지 판단하고 실행할 서블릿 객체가 메모리에 없으면 최초 요청이고, 이미 있으면 최초의 요청이 아닌 것으로 판단한다.
+3. 서블릿 객체 생성: 서블릿 컨테이너는 요청받은 서블릿이 최초의 요청이라면 해당 서블릿을 메모리에 로딩하고 객체를 생성한다. 일반 자바 객체는 new명령문으로 여러 개의 객체를 언제든지 직접 생성할 수 있지만, 서블릿은 최초 요청이 들어왔을 때 한 번만 객체를 생성하고 이때 생성된 객체를 계속 사용한다.
+4. init() 메소드 실행: 주로 객체의 초기화 작업이 구현되어 있다.
+5. 서블릿 컨테이너는 HttpServletRequest와 HttpServletResponse 객체를 생성한다.
+6. service() 메소드 실행: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다. 앞서 생성한 두 객체의 주소를 인자로 넘기고. service() 메소드에서는 인자로 박은 두 객체를 사용하여 프로그램을 구현한다.
+7. service() 메소드가 완료되면 클라이언트에 응답을 보내고 서버에서 실행되는 프로그램은 완료된다. 이때, requset, response객체는 소멸한다.
+
+***
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.util.*;
+
+@WebServlet("/headerInfo")
+public class HeaderInfoServlet extends HttpServlet {
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		res.setContentType("text/html;charset=EUC-KR"); // 문서타입과 문자셋 설정, 없을 경우 한글 깨짐
+		PrintWriter out = res.getWriter(); // out이라는 출력스트림을 통해 화면에 노출
+		out.print("<html>");
+		out.print("<head><title>Request 정보 출력 Servlet</title></head>");
+		out.print("<body>");
+		out.print("<h3>요청 헤더 정보</h3>");
+		Enumeration<String> em = req.getHeaderNames();
+		while (em.hasMoreElements()) {
+			String s = em.nextElement();
+			out.println(s + " : " + req.getHeader(s) + "<br/>");
+		}
+		out.print("</body></html>");
+		out.close();
+	}
+}
+```
+
+`Enumeration<String> em = req.getHeaderNames();`
+req.getHeaderNames()는 요청정보의 헤더 안에 있는 정보 중 헤더 이름들만 모아 Enumeration 객체에 담아서 반환하고, 반환된 값의 시작주소를 em 변수에 저장합니다. Enumeration 객체도 java. util 패키지에 있으며, 배열처럼 데이터 그룹으로 구성된 Colletion 객체입니다. 제네릭(Generics)을 이용 하여 Enumeration String) 객체 안에 저장되는 데이터의 타입을 String으로 선언하고 있습니다.
+제네릭은 Collection 객체에 담기는 데이터의 타입을 Collection 객체 생성 시 미리 선언하는 기능입니다. ArrayList<String> List = new ArrayList<String>(): 이렇게 선언하면 List 안에는 String 타입의 데이터만 저장하겠다는 의미여서 String이 아닌 데이터를 저장하면 오류가 발생합니다. 또한, 추출할 때는 자동으로 String 타입으로 변환됩니다.
+Enumertion 객제가 Set. List, Map 계열의 Collection 객제와 다른 점은 그룹의 데이터에 접근할 때 인덱스나 키가 아닌 커서(cursor)라는 개념으로 접근한다는 사실입니다. rect.setHendervame() 메소 드가 헤더 정보의 이름들을 Scing 타입으로 Enumtration 제체에 담아 반원하면 Ehumeration 객지 의 첫 번째 요소 앞에 커서가 위치합니다.
+
+`while (em.hasMoreElements ()) {`
+em.hasMoreElements()는 em이 가리키는 Enumeration 객체의 커서 다음에 데이터가 있는지 없는 지를 판단하여 있으면 true, 없으면 false를 반환합니다. 커서가 마지막 요소에 있을 때 비로소 false를 반환하고 while 반복문을 빠져나옵니다.
+`String s = em.nextElement ();`
+em.nextElement()는 em의 커서 다음에 있는 요소를 반환하고 커서를 다음 요소로 이동시킵니다. em 변수를 선언할 때 Enumeration String>으로 선언했으므로 반환하는 값은 String 타입이며, 반환값을 String s 변수에 저장합니다.
+
+`out.printIn(s + " : " + req. getHeader(s) + "br/)");`
+s 변수에는 요청정보의 헤더 이름이 들어있습니다. 헤더 이름을 gettleader( ) 메소드의 인자로 지정하 면 해당 이름을 찾아 값을 반환합니다. 즉, getHeader()는 헤더의 값을 추출할 때 사용하는 메소드입니다.
+
+>  Enumeration과 Iterator는 그룹안에 있는 요소에 접근할 때 인덱스나 키로 접근하는 것이 아니고, 커서의 개념으로 접근한다는 점이다.
+
+***
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+// web.xml을 통해 접근
+//@WebServlet("/addInfo")
+public class AdditionalInfoServlet extends HttpServlet {
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		res.setContentType("text/html;charset=EUC-KR");
+		PrintWriter out = res.getWriter();
+		out.print("<html>");
+		out.print("<head><title>Request 정보 출력 Servlet</title></head>");
+		out.print("<body>");
+		out.print("<h3>추가적인 요청 정보</h3>");
+		out.print("Request Method : " + req.getMethod() + "<br/>");
+		out.print("Path Info : " + req.getPathInfo() + "<br/>");
+		out.print("Path Translated : " + req.getPathTranslated() + "<br/>");
+		out.print("Query String : " + req.getQueryString() + "<br/>");
+		out.print("Content Length : " + req.getContentLength() + "<br/>");
+		out.print("Content Type : " + req.getContentType() + "<br/>");
+		out.print("</body></html>");
+		out.close();
+	}
+}
+```
+
+```xml
+	<servlet>
+		<servlet-name>addInfo</servlet-name> <!-- 3 -->
+		<servlet-class>com.edu.test.AdditionalInfoServlet</servlet-class> <!-- 4 -->
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>addInfo</servlet-name>  <!-- 2 -->
+		<url-pattern>/addInfo/*</url-pattern> <!-- 1 -->
+	</servlet-mapping>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/bab56f88-3680-4d9e-9d9d-6bdf7b983363)
+
+①에서 `<url-pattern>/addInfo</urI-pattern>`으로 지정했으므로 클라이언트로부터 `http://localhost:8080/edu/addInfo`로 URL 요청이 들어오면 ②에 지정된 이름과 같은 이름을 `<servlet>`태그의 `<servlet-name>`에서 찾습니다(③).  그런 다음 `<servlet-class>`에 지정된 서블릿을 실행합니다. 즉, ④에 지정된 `com.edu. test.AdditionallnfoServlet`의 `service( ) `메소드가 실행됩니다. 클라이언트로부터 서비스 요청이 들어와 해당 서블릿이 실행되기까지 매핑된 정보를 찾아가는 순서를 보면 "클라이언트 요청 →① → ② → ③ → ④" 순입니다.
+그런데 클라이언트 요청 URL과 매핑되는 `<url-pattern>`을 지정할 때 다음 예처럼 `*` 기호를 사용할 수 있습니다.
+
+***
+
+### 질의 문자열(query string)
 
 
 
@@ -122,6 +205,17 @@ public class SendRedirectTestServlet extends HttpServlet {
 
 
 
+
+
+
+
+
+
+
+
+
+
+***
 
 
 [^1]: 환경설정 파일
