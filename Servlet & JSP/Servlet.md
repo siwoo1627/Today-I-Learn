@@ -90,9 +90,9 @@ public class SendRedirectTestServlet extends HttpServlet {
 1. 클라이언트로부터 처리 요청받음: 요청받은 페이지가 서블릿이면 서블릿 컨테이너에 처리를 넘기고, 서블릿 컨테이너는 요청받은 서블릿을 WEB-INF/classes나 WEB-INF/lib에서 찾아서 실행 준비를 한다.
 2. 최초의 요청 여부 판단: 서블릿 컨테이너는 현재 실행할 서블릿이 최초의 요청인지 판단하고 실행할 서블릿 객체가 메모리에 없으면 최초 요청이고, 이미 있으면 최초의 요청이 아닌 것으로 판단한다.
 3. 서블릿 객체 생성: 서블릿 컨테이너는 요청받은 서블릿이 최초의 요청이라면 해당 서블릿을 메모리에 로딩하고 객체를 생성한다. 일반 자바 객체는 new명령문으로 여러 개의 객체를 언제든지 직접 생성할 수 있지만, 서블릿은 최초 요청이 들어왔을 때 한 번만 객체를 생성하고 이때 생성된 객체를 계속 사용한다.
-4. init() 메소드 실행: 주로 객체의 초기화 작업이 구현되어 있다.
+4. init(ServletConfig) 메소드 실행: 주로 객체의 초기화 작업이 구현되어 있다.
 5. 서블릿 컨테이너는 HttpServletRequest와 HttpServletResponse 객체를 생성한다.
-6. service() 메소드 실행: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다. 앞서 생성한 두 객체의 주소를 인자로 넘기고. service() 메소드에서는 인자로 박은 두 객체를 사용하여 프로그램을 구현한다.
+6. service(HttpServletRequest, HttpServletResponse) 메소드 실행: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다. 앞서 생성한 두 객체의 주소를 인자로 넘기고. service() 메소드에서는 인자로 박은 두 객체를 사용하여 프로그램을 구현한다.
 7. service() 메소드가 완료되면 클라이언트에 응답을 보내고 서버에서 실행되는 프로그램은 완료된다. 이때, requset, response객체는 소멸한다.
 
 ***
@@ -224,7 +224,59 @@ req.setCharacterEncoding("UTF-8"); // POST 방식 한글 인코딩 처리
 
 ***
 
+```xml
+<!-- web.xml -->
+<servlet>
+		<servlet-name>initParam</servlet-name>
+		<servlet-class>com.edu.test.InitParamServlet</servlet-class>
+		<init-param>
+			<param-name>id</param-name>
+			<param-value>guest</param-value>
+		</init-param>
+		<init-param>
+			<param-name>password</param-name>
+			<param-value>1004</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+```
 
+`web.xml`에 매핑한 id와 password의 값을 `init()` 메서드를 오버라이딩해서 사용이 가능하다.
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class InitParamServlet extends HttpServlet{
+
+	String id, password;
+	
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+		id = config.getInitParameter("id");
+		password = config.getInitParameter("password");
+	}
+	@Override
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		res.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = res.getWriter();
+		out.print("<h2>서블릿 초기 추출 변수 </h2>" );
+		out.print("<h3>ID : "+id+"</h3>");
+		out.print("<h3>PASSWORD : "+password+"</h3>");
+		out.close();
+	}
+}
+```
+
+***
+
+### 서블릿 메모리![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/7b82d5a9-8090-4cb7-a4a4-8966ef63d808)
+
+* 멤버변수는 객체 생성 시 힙 메모리에 생성되며 서블릿을 실행하는 클라이언트들이 공통으로 사용
+* service() 메서드가 사용하는 지역변수는 스택 메모리에 생성되며, 클라이언트마다 독립적으로 사용
 
 
 
