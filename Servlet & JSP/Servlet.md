@@ -318,11 +318,216 @@ ServletContext sc = this.getServletContext();
 
 ServletContext 객체는 웹 애플리케이션 단위로 사용되는 객체로, 동일한 웹 애플리케이션 안에 모든 페이지에서 동일한 ServletContext 객체를 사용한다. 그래서  ServletContext 객체를 이용하여 웹 애플리케이션 단위로 정보를 유지함으로써 공유할 수 있다.
 
+***
 
+#### Cookie
 
+: 서버가 클라이언트에 저장하는 정보로서 클라이언트 쪽에 필요한 정보를 저장해놓고 필요할 때 추출하는 것을 지원하는 기술
 
+클라이언트에 저장된 쿠키 정보는 이후 다시 서버에 방문할 때 자동으로 요청정보의 헤더 안에 포함되어 전달됨
 
+```java
+package com.edu.test;
 
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+@WebServlet("/cookie1")
+public class CookieTest1Servlet extends HttpServlet {
+	@Override
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = resp.getWriter();
+
+		Cookie c1 = new Cookie("id", "guest"); //이름이 ID, 값은 guest인 쿠키 생성
+		c1.setPath("/"); // 경로 설정
+		resp.addCookie(c1);
+
+		Cookie c2 = new Cookie("code", "0001");
+		c2.setMaxAge(60 * 60 * 3); // 3시간
+		c1.setPath("/");
+		resp.addCookie(c2);
+
+		Cookie c3 = new Cookie("subject", "java");
+		c3.setMaxAge(60 * 60 * 24 * 10); // 10일
+		c1.setPath("/");
+		resp.addCookie(c3);
+
+		out.println("쿠키 전송 완료");
+		out.close();
+	}
+}
+```
+
+**쿠키 생성 : Cookie(string name, String value)**
+쿠키를 생성하려면 javax.servlet.http.Cookie 객체를 생성합니다. Cookie 객체는 두 개의 String을 인자로 인자로 받는 생성자가 선언되어 있는데요. 
+첫 번째 인자가 쿠키의 name으로 지정되며, 두 번째 인자가 쿠키의 value로 지정됩니다.
+
+**쿠키 유효 시간 설정 : setMaxAge(int expiry)**
+클라이언트로 전송되는 쿠키의 유효 시간을 설정한 때는 Cookie 객체의 setMaxAge() 메소드를 사용합니다. 인자값으로 정수를 지정하며, 이 값은 Cookie의 유효 시간의 초(second)를 의미합니다.
+지정된 인자값에 따라 쿠키 동작이 다르게 되는데요. 만약 정숫값을 0으로 지정하면 쿠키 삭제를 의미합니다. 그리고 음수값을 지정하면 쿠키가 클라이언트로 전송된 후 브라우저가 종료되면 쿠키도 자동으로 삭제됩니다. 개발 시 setMaxAge() 메소드로 유효 시간을 지정하지 않은 쿠키도 음수값이 적용되어 브라우저가 전송받은 후 브라우저가 종료되면 쿠키도 함께 삭제됩니다.
+
+**쿠키 경로 설정 : setPath(String uri)**
+현재 접속 중인 서버에서 이전에 클라이언트에게 전송한 쿠키가 있으면 기본적으로 요청정보 해더 안에 쿠키가 포함되어 서버 쪽으로 전송됩니다. 서버의 모든 요청에 대하여 쿠키가 서버 쪽으로 전송되는 것이 아니라, 특정 경로의 요청에서만 쿠키를 전송하고자 할 때 setPath() 메소드를 사용하여 경로를 지정할 수 있습니다. setPath() 메소드의 인자값으로 경로를 지정하면, 지정된 경로와 그것의 하위 경로의 요청에 대해서만 클라이언트로부터 쿠키가 전송됩니다.
+
+**쿠키 도메인 설정 : setDomain(String domain)**
+쿠키는 기본적으로 전송된 서버에서만 읽어 들여 사용할 수 있습니다. 그런데 어떤 웹 서비스는 하나의 서버에서만 전체 서비스를 하는 것이 아니라, 여러 대의 서버가 연결되어 서비스를 처리합니다. 이러한 웹 서비스에서는 쿠키의 도메인 설정을 통해 하나의 서버에서 클라이언트로 전송된 쿠키를 다른 서버에서 읽어 들여 사용할 수 있습니다. 이때 사용하는 메소드가 setDomain()입니다.
+setDomain() 메소드의 인자값으로 서버의 도메인을 지정하는데 `www.edu.com`처럼 지정하면 정확히 일치하는 도메인에서만 쿠키를 읽어 들일 수 있고, `.edu.com`처럼 지정하면 `it. edu.com`이나 `math,edu.com`처럼 `edu.com`이 포함된 모든 도메인 서버에서 쿠키를 읽어 들일 수 있습니다.
+
+**쿠키 전송 : addCookie(Cookie cooke)**
+생성된 쿠키를 클라이언트로 보낼 때는 HttpServetResponse 객체의 addCooktel( ) 메소드를 이 용합니다. addCookie() 메소드의 인자값으로 전송할 Cookie 객체를 설정하면 쿠키에 설정된 내용 으로 클라이언트 쪽으로 쿠키가 전송됩니다.
+
+**쿠키 추출 : Cookie[] getCookies( )**
+클라이언트로 전송된 쿠키를 서버 쪽에서 읽어 들이려면 HttpServletRequest 객체의 getCookies메소드를 이용합니다.
+
+**쿠키 검색 : String getName()**
+HttpServletRequest 객체의 getCookies() 메소드는 서버가 전송한 쿠키를 한꺼번에 읽어 들여 반환하므로 반환된 쿠키 중에서 원하는 쿠키를 찾는 작업을 해야 합니다. 쿠키를 검색할 때는 쿠키의 이 름을 가지고 검색하며, 쿠키의 이름만을 추출할 때는 Cookie 객체의 getName( ) 메소드를 사용합 니다.
+
+**쿠키 값 추출 : String getValue( )**
+읽어 들인 쿠키 중에서 원하는 쿠키를 이름으로 검색하여 찾은 다음에는 쿠키의 값을 추출하여 사용 해야 합니다. 쿠키의 값을 추출할 때는 Cookie 객체의 getValue() 메소드를 사용합니다.
+
+***
+
+#### Session
+
+: Http 기반으로 동작하는 클라이언트가 서버에 정보를 요청할 때 생성되는 "상태정보"를 세션이라고 한다.
+
+HttpSession 객체가 생성될 때는 요청을 보내온 클라이언트 정보, 요청 시간 정보 등을 조합한 세션ID가 부여되며, 이 세션 ID는 클라이언트 측에 쿠키 기술로 저장된다.
+
+즉, HttpSession 객체는 서버에 생성되며, 클라이언트에는세션ID가 쿠키 기술로 저장되어 각 클라이언트에 대하여 생성되는 HttpSession 객체를 클라이언트마다 개별적으로 유지 및 관리한다.
+
+**HttpServletRequest의 getSession()**
+
+클라이언트가 가지고 있는 세션ID와 동일한 세션 객체를 찾아서 주솟값을 반환, 만일 세션이 존재하지 않으면 새로운 HttpSession 객체를 생성하여 반환한다.
+
+**HttpServletRequest의 getSession**(boolean create)
+
+클라이언트가 가지고 있는 세션ID와 동일한 세션 객체를 찾아서 주솟값을 반환, 만일 세션이 존재하지 않으면 매개변수 create의 값이 true인지 false인지에 따라 다르게 동작한다.  true이면 getSession메소드와 마찬가지로 새로운 HttpSession 객체를 생성 및 반환하고, false이면 null을 반환한다.
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+@WebServlet("/sessionTest")
+public class SessionTestServlet extends HttpServlet {
+
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = resp.getWriter();
+		String param = req.getParameter("p");
+		String msg = null;
+		HttpSession session = null;
+
+		if (param.equals("create")) {
+			session = req.getSession();
+			if (session.isNew()) {
+				msg = "새로운 세션 객체가 생성됨";
+			} else {
+				msg = "기존의 세션 객체가 리턴됨";
+			}
+		} else if (param.equals("delete")) { 
+			session = req.getSession(false); // 세션객체가 없으면 null
+			if (session != null) {
+				session.invalidate(); // 세션 객체 삭제
+				msg = "세션 객체 삭제 작업 완료";
+			} else {
+				msg = "삭제할 세션 존재하지 않음";
+			}
+		} else if (param.equals("add")) {
+			session = req.getSession(true);
+			session.setAttribute("msg", "메시지입니다");
+			msg = "세션 객체에 데이타 등록 완료";
+		} else if (param.equals("get")) {
+			session = req.getSession(false);
+			if (session != null) {
+				String str = (String) session.getAttribute("msg");
+				msg = str;
+			} else {
+				msg = "데이타를 추출할 세션 객체 존재하지 않음";
+			}
+		} else if (param.equals("remove")) { 
+			session = req.getSession(false);
+			if (session != null) {
+				session.removeAttribute("msg");
+				msg = "세션 객체의 데이타 삭제 완료";
+			} else {
+				msg = "데이타를 삭제할 세션 객체 존재하지 않음";
+			}
+		} else if (param.equals("replace")) { 
+			session = req.getSession();
+			session.setAttribute("msg", "새로운 메시지입니다");
+			msg="세션 객체에 데이타 등록 완료";
+		}
+
+		out.print("처리 결과 : " + msg);
+		out.close();
+	}
+}
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/7c323dd9-1e00-43c6-b483-babbe8a3ef30)
+
+* [로그인/로그아웃 세션 구현](https://github.com/siwoo1627/java/blob/main/Servlet/%EB%A1%9C%EA%B7%B8%EC%9D%B8%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83/%EB%A1%9C%EA%B7%B8%EC%9D%B8%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83.md)
+
+| 구분             | 쿠키       | 세션                       |
+| ---------------- | ---------- | -------------------------- |
+| 저장 위치        | 클라이언트 | 서버                       |
+| 저장 데이터 타입 | 텍스트     | 객체                       |
+| 저장 데이터 크기 | 제한 있음  | 서버에 수용할 수 있는 만큼 |
+
+***
+
+#### HttpServletRequest
+
+: A페이지와 B페이지가 동시에 실행되거나 A페이지를 통해 B페이지가 실행될 경우 HttpServletRequset 객체가 유지되므로 해당 객체로 정보 공유함
+
+> service() 메소드가 실행되기 전에 자동으로 생성되고, service() 메소드가 종료되면 자동을 소멸하는 객체
+
+HttpServletResponse 요청 재지정[^2]
+
+* sendRedirect(String location)
+  * `resp.sendRedirect("http://www.naver.com");`
+
+* encodeRedirectURL(String url)
+
+RequestDispacther 요청 재지정
+
+* forward: HttpServletRequst, HttpServletResponse 객체를 다른 자원에 전달하고 수행 제어를 완전히 넘겨서 다른 자원의 수행 결과를 클라리언트로 응답하도록 하는 기능을 하는 메서드
+* include: HttpServletRequst, HttpServletResponse 객체를 다른 자원에 전달하고 수행한 다음, 그 결과를 클라이언트에서 요청한 서블릿 내에 포함하여 클라이언트에 응답하는 기능의 메서드
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+@WebServlet("/dispatcher1")
+public class DispatcherTest1Servlet extends HttpServlet {
+
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = resp.getWriter();
+		out.print("<h3>Dispatcher Test1의 수행결과</h3>");
+
+		ServletContext sc = this.getServletContext();
+		RequestDispatcher rd = sc.getRequestDispatcher("/dispatcher2");
+        // rd.forward(req, resp);
+		rd.include(req, resp);
+
+		out.close();
+	}
+}
+```
+
+* [책정보](https://github.com/siwoo1627/java/blob/main/Servlet/%EC%B1%85%EC%A0%95%EB%B3%B4/bookInput.html)
 
 
 
@@ -334,3 +539,4 @@ ServletContext 객체는 웹 애플리케이션 단위로 사용되는 객체로
 
 
 [^1]: 환경설정 파일
+[^2]: 클라이언트가 요청한 페이지가 실행되다가 다른 페이지로 이동하는 것
