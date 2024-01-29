@@ -278,11 +278,45 @@ public class InitParamServlet extends HttpServlet{
 * 멤버변수는 객체 생성 시 힙 메모리에 생성되며 서블릿을 실행하는 클라이언트들이 공통으로 사용
 * service() 메서드가 사용하는 지역변수는 스택 메모리에 생성되며, 클라이언트마다 독립적으로 사용
 
+***
 
+### 상태정보 유지기술
 
+HTTP는 비연결형, 무상태로 동작하는 프로토콜이므로 상태정보를 일정 시간 동안 지속해서 유지해주는 기술을 '상태 정보 유지 기술'이리고 한다.
 
+클라이언트 측에 저장하여 유지하는 기술과 서버 측에 저장하여 유지하는 기술이 있다.
 
+> 무상태(Stateless): 클라이언트와 서버 간의 연결을 클라이언트 요청이 있을 때마다 새롭게 연결하는 방식, 서버가 클라이언트에서 응답을 보내는 즉시 끊어짐
 
+- 클라이언트 측에 저장 기술: 웹 브라우저에 저장
+  - `javax.xervlet.http.Cookie`
+- 서버 측에 저장 기술: 서버의 힙 메모리 영역에 만들어진 객체에 상태정보를 저장
+  - `javax.servlet.ServletContext`
+  - `javax.servlethttp.HttpSession`
+  - `javax.servlet.http.HttpServletRequest`
+
+#### ServletContext
+
+: 웹어플리케이션 단위로 Context를 생성하여 관리, 서블릿 컨테이너와 통신하기 위해서 사용되는 메소드를 지원하는 인터페이스
+
+ServletContext 주솟값을 추출하는 방법
+
+* init() 메소드를 재정의하여 추출하는 방법
+
+```java
+	@Override
+	public void init(ServletConfig config) throws ServletException{
+		ServletContext sc = this.getServletContext(); // getServletContext: ServletContext를 추출하는 메서드	
+	}
+```
+
+* HttpServlet을 통해 추출하는 방법
+
+```java
+ServletContext sc = this.getServletContext();
+```
+
+ServletContext 객체는 웹 애플리케이션 단위로 사용되는 객체로, 동일한 웹 애플리케이션 안에 모든 페이지에서 동일한 ServletContext 객체를 사용한다. 그래서  ServletContext 객체를 이용하여 웹 애플리케이션 단위로 정보를 유지함으로써 공유할 수 있다.
 
 
 
