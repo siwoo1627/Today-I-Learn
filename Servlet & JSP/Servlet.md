@@ -533,44 +533,387 @@ public class DispatcherTest1Servlet extends HttpServlet {
 
 ### Filter
 
+: 클라이언트로부터 서블릿이 요청되어 수행될 때 필터링 기능을 제공하기 위한 기술
 
+> 인증, 로그, 오류 처리, 데이터 압축, 변환, 응답 내용 추가, 한글처리 등
 
+**init(FilterConfig)**
 
+필터 객체가 생성될 때 호출되는 메소드, 웹서버가 시작될 때 한 번만 생성된 다음, 계속 사용되므로 init()메소드는 주로 초기화 기능을 구현한다.
 
+**destroy()**
 
+필터 객체가 삭제될 때 호출되는 메서드
 
+**doFilter(ServletRequest, ServletResponse, FilterChain)**
 
+필터링 설정한 서블릿을 실행할 때마다 호출되는 메소드로서 실제 필터링 기능을 구현하는 메소드
 
+```java
+package com.edu.test;
 
+import javax.servlet.*;
 
+public class FlowFilterOne implements Filter {
+	public void init(FilterConfig config) {
+		System.out.println("init() 호출 ......... one");
+	}
 
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws java.io.IOException, ServletException {
+		System.out.println("doFilter() 호출 전 ........ one");
+		chain.doFilter(req, res);
+		System.out.println("doFilter() 호출 후 ........ one");
+	}
 
+	public void destroy() {
+		System.out.println("destroy() 호출 ........ one");
+	}
+}
+```
 
+필터 등록 : `<fiter>` 태그
+Filter 인터페이스를 상속받아 필터 객체를 구현한 다음에는 구현된 필터를 서버에 등록해야만 동작한다. 서버에 필터를 등록하는 방법은 weh. xml 파일에 다음과 같은 태그를 사용합니다.
 
+```xml
+<!-- 필터 등록 태그 구조 -->
 
+<filter>
+	<filter-name>flow1</filter-name>
+    <filter-class>com.edu.test.FlowFilterOne</filter-class>
+	<filter-name>flow2</filter-name>
+    <filter-class>com.edu.test.FlowFilterTwo</filter-class>
+	<init-param>
+		<param-name>en</param-name>
+		<param-value>UTF-8</param-value>
+	</init-param>
+</filter>
+<filter-mapping>
+	<filter-name>flow1</filter-name>
+	<url-pattern>/second</url-pattern>
+</filter-mapping>
+<filter-mapping>
+	<filter-name></filter-name>
+    <servlet-name></servlet-name>
+</filter-mapping>
+```
 
+* `<filter>`: javax servlet.Fiiter 인터페이스를 상속받고 있는 객체를 등록하는 태그입니다. 웹 애플리케이션 서비스가 준비되면서 웹서버가 web.Xml 파일에서 `<fiter>` 태그를 읽으면 해당하는 객체를 찾아가 객체를 생성합니다. 그래서 필터 객체가 생성되는 시점은 웹 애플리케이션 서비스가 시작될 때입니다.
+* `<filter-name>`: 등록하는 필터의 논리적인 이름을 지정합니다. 이름은 개발자가 임의로 지정하는 이름으로서 서버에 필터를 등록하는 이름입니다. 이름을 등록한 후에는 클래스 이름이 아니라 등록된 이름으로 사용해야 합니다. `<fiter-name>`은 `<filter>` 태그의 필수 하위 태그입니다.
+* `<filter-class>`: 등록하는 필터의 클래스 이름을 지정합니다. 웹서버는 `<filter-class>`에 등록된 클래스를 찾아가 객체를 생성하기 때문에 실제 클래스 이름을 패키지 이름과 함께 정확하게 지정해야 객체가 올바르게 생성됩니다. `<filer-class>`는 `<filter>` 태그의 필수 하위 태그입니다.
+* `<init-param>` : web.xml에서 필터 객체에 변수를 전달할 때 사용하는 태그입니다. `<init-param>`은 `<filter>` 태그의 선택 하위 태그입니다.
+* `<param-name>` : 필터 객체에 전달하고자하는 변수의 이름을 지정합니다. `<param-name>`은 `<init-param>` 태그의 필수 하위 태그입니다.
+* `<param-value>` : 필터 객체에 전달하려는 변수값을 지정합니다. `<param-value>`는 `<init-param>` 태그의 필수 하위 태그입니다.
 
+* `<filter-mapping>` : 앞에서 `<filter>` 태그로 등록된 필터가 어떤 서블릿을 필터랑할 것인지 설정하는 태그입니다.
+* `<filter-name>`: 실행할 필터를 지정합니다. 이때 지정하는 값은 필터의 클래스 이름이 아니고,  `<filter>` 태그로 필터를 등록 할 때 `<filter-name>` 태그에 지정한 이름을 사용해야 합니다. 만일 등록되지 않은 필터 이름을 지정한다면 web.xml 오류가 발생하여 웹 애플리케이션 전체가 서비스되지 않습니다.
+* `<url-pattern>`: 필터링할 서블릿을 지정합니다. 서블릿을 지정할 때는 클라이언트가 요청하는 URL을 지정합니다. URL을 지정할 때는 전체 주소를 지정하는 것이 아니라. 웹 애플리케이션 이름까지는 생략한 후 다음부터 지정합니다.
+  예를 들어. `http://ocalhost:8080/edu/second` 요청에 대하여 실행되는 페이지를 필터링하고자 한다면, 앞에는 생략하고  second만 지정하면 됩니다. 어차피 현재 web.xml은 `/edu` 웹 애플리케이션에 대한 설정이므로, 별도로 지정하지 않아도 고정되어 있기 때문입니다. 그리고 url로 필터링할 페이지를 지정하기 때문에 꼭 서블릿만 필터링할 수 있는 것은 아닙니다.
+* `<servlet-name>`: 필터링할 서블릿을 지정할 때 `<url-pattern>` 태그로 클라이언트가 실행을 요청하는 url로 지정할 수 있지만, `<servlet-name>` 태그를 사용할 수도 있습니다. `<servlet-name>`의 값은 `<servlet>`의 `<servlet-name>` 태그에서 지정된 값만을 사용할 수 있습니다. 만일 등록되지 않은 값이 `<servlet-name>` 태그값으로 사용되면 웹 애플리케이션은 올바르게 서비스되지 않습니다.
 
+```java
+chain.doFilter(req, res);
+```
 
+chain 변수는 doFilter() 메소드가 호출될 때 세 번째 인자로 전달되는 FilterChain 객체이다. FilterChain 객체는 web.xml 파일에서 모든 `<filter-mapping>` 태그에 관한 정보를 근거로 해서, 현재 실행중인 메소드 다음에 실행할 메소드를 실행하는 역할을 한다.
 
+> flow1이 실행되고 flow2가 실행됨
 
+더 이상 실행할 filter가 없으면 service() 메소드가 호출된다.
 
+#### 한글 처리
 
+```java
+package com.edu.test;
 
+import javax.servlet.*;
 
+public class FlowFilterTwo implements Filter {	
+	String charset;
+	public void init(FilterConfig config) {
+		System.out.println("init() 호출 ......... two");
+		charset = config.getInitParameter("en");
+	}
 
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws java.io.IOException, ServletException {
+		req.setCharacterEncoding(charset);
+		System.out.println("doFilter() 호출 전 ........ two");
+		chain.doFilter(req, res);
+		System.out.println("doFilter() 호출 후 ........ two");
+	}
 
+	public void destroy() {
+		System.out.println("destroy() 호출 ........ two");
+	}
+}
+```
 
+```java
+public void init(FilterConfig config) {
+```
 
+: 필터 객체에 대한 정보는 web.xml 파일에 `<filter>` 태그로 설정되어 있으며 `<init-param>` 태그 정보 역시 추출 가능하다.
 
+#### @WebFilter 어노테이션
 
+* @WebFilter("/login"): 클라이언트가 요청하는 페이지의 실행 요청 URl을 설정하는 방법
+* @WebFilter("/*"): 와일드 카드를 사용하여 설정하는 방법
+* @WebFilter(value="/hello"): value 속성으로 지정하는 방법
+* @WebFilter(urlPatterns="/hello"): urlPatterns 속성으로 지정하는 방법
+* @WebFilter(servletNames="/MyServlet"): 서블릿 이름으로 지정하는 방법
+* @WebFilter(servletNames="FirstServlet","SecondServlet"): 값이 여러 개일 때 배열처럼 지정하는 방법
 
+```java
+package com.edu.test;
 
+import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
 
+@WebFilter(filterName = "timer", urlPatterns = { "/third" })
+public class FlowFilterThree implements Filter {
+	public void init(FilterConfig config) {}
 
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws java.io.IOException, ServletException {
+		long startTime = System.currentTimeMillis();
+		chain.doFilter(req, res);
+		long endTime = System.currentTimeMillis();
+		long executeTime = endTime - startTime;
+		System.out.println("수행 시간  :" + executeTime + " ms");
+	}
+
+	public void destroy() { }
+}
+```
+
+***
+
+### 리스너(Listener)
+
+: 어떠한 이벤트가 발생하기를 기다리다가 실제 그 이벤트가 발생했을 때 수행되는 메소드를 가지고 있는 자바 객체[^3]
+
+| 구분               | 생성 시점                 | 삭제 시점                 |
+| ------------------ | ------------------------- | ------------------------- |
+| ServletContext     | 서버 시작 시              | 서버 종료 시              |
+| HttpSession        | 클라이언트 접속 시        | 클라이언트 접속 종료 시   |
+| HttpServletRequest | 클라이언트 서비스 요청 시 | 클라이언트 서비스 응답 시 |
+
+```xml
+<listener>
+	<listener-class>com.edu.test.TestRequestListener</listener-class>
+</listener>
+```
+
+`<listner>`: 이벤트 핸들러를 상속받아 메소드를 재정의한 객체, 즉 리슨너 객체를 등록할 때 사용하는 태그
+
+`<listener-class>`: `<listener>` 태그를 사용할 때 반드시 지정해야 하는 태그로서, 실제 리스너 객체의 클래스 이름을 패키지 이름과 함께 정확하게 지정함
+
+> 웹서버가 시작될 때 web.xml에서 listener 태그를 읽어 들이면서 listener-class에 지정한 클래스를 찾아서 생성하고 서버가 중지될 때 삭제된다.
+>
+> 웹 애플리케이션이 서비스되고 있는 동안 메모리에 상주하고 있으므로 이벤트가 발생하면 자동으로 메소드가 실행된다.
+
+#### HttpServletRequest
+
+```java
+package com.edu.test;
+
+import javax.servlet.*;
+
+public class TestRequestListener implements ServletRequestListener {
+	public TestRequestListener() {
+		System.out.println("TestRequestListener 객체 생성");
+	}
+
+	public void requestInitialized(ServletRequestEvent e) {
+		System.out.println("HttpServletRequest 객체 초기화");
+	}
+
+	public void requestDestroyed(ServletRequestEvent e) {
+		System.out.println("HttpServletRequest 객체 해제");
+	}
+}
+```
+
+#### HttpSession
+
+```java
+package com.edu.test;
+
+import javax.servlet.http.*;
+
+public class TestSessionAttributeListener implements HttpSessionAttributeListener {
+	public TestSessionAttributeListener() {
+		System.out.println("TestSessionAttributeListener 객체 생성");
+	}
+
+	public void attributeAdded(HttpSessionBindingEvent e) {
+		System.out.println("세션 객체에 속성 추가");
+	}
+
+	public void attributeRemoved(HttpSessionBindingEvent e) {
+		System.out.println("세션 객체에 추가된 속성 삭제");
+	}
+
+	public void attributeReplaced(HttpSessionBindingEvent e) {
+		System.out.println("세션 객체에 추가된 속성 대체");
+	}
+    
+	public void sessionCreated(HttpSessionEvent e) {
+		System.out.println("세션 객체 생성");
+	}
+
+	public void sessionDestroyed(HttpSessionEvent e) {
+		System.out.println("세션 객체 해제");
+	}
+}
+```
+
+#### ServletContext[^4]
+
+```java
+package com.edu.test;
+
+import javax.servlet.*;
+import javax.servlet.annotation.WebListener;
+
+@WebListener
+public class TestServletContextListener implements ServletContextListener {
+	public TestServletContextListener() {
+		System.out.println("TestServletContextListener 객체 생성");
+	}
+
+	public void contextInitialized(ServletContextEvent e) {
+		System.out.println("ServletContext 객체 초기화");
+	}
+
+	public void contextDestroyed(ServletContextEvent e) {
+		System.out.println("ServletContext 객체 해제");
+	}
+}
+```
+
+#### @WebListener 어노테이션
+
+@WebListener 추가 시 web.xml에 작업 안해도됨
+
+***
+
+### 오류 처리
+
+#### 실행 코드를 try-catch 블록으로 구성한다
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+@WebServlet("/errorTest2")
+public class ErrorTest2Servlet extends HttpServlet {
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		res.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = res.getWriter();
+		try {
+			String getquery = req.getQueryString();
+			out.print("Query : " + getquery + "<br>");
+			out.print("Query 길이 : " + getquery.length());
+
+		} catch (Exception e) {
+			out.print("요청을 처리하는 동안 오류가 발생하였습니다 : " + e);
+		}
+		out.print("<br>Done!");
+		out.close();
+	}
+}
+```
+
+#### 메소드 선언부에 throws 절을 선언한다
+
+throws 다음에 선언된 Exception 객체들은 현재 메서드에서 발생할 오류인데, 메소드 내에서 처리하지 않고 메소드를 호출한 곳에서 처리하라고 선언하는 것이다.
+
+```java
+public void b() throws Exception{
+	// 오류   
+}
+```
+
+b() 메소드에서 Exception을 throws하면 b() 메소드를 호출한 곳에서는 오류를 처리해야 한다. 
+
+```java
+public void a(){
+    try{
+        b();
+    }catch(Exception e){
+        // b에서 발생한 오류 처리
+    }   
+}
+```
+
+#### web.xml에 오류 처리를 설정한다
+
+오류가 발생했을 때 처리할 페이지를 web.xml 파일에 지정하면, 오류가 발생했을 때 프로그램이 강제로 중단되지 않고 web.xml에 설정한 오류 처리 페이지를 실행한다.
+
+* web.xml을 이용해서 오류를 처리하면 대상이 현재 웹 애플리케이션 전체이다.
+
+> try-catch와 web.xml이 동일오류에 대한 처리일 경우 try가 우선시된다.
+
+```xml
+<error-page>
+	<error-code>405</error-code>
+	<location>/errorHandle</location>
+</error-page>
+<error-page>
+	<exception-type>java.lang.NullPointerException</exception-type>
+	<location>/errorHandle</location>
+</error-page>
+```
+
+`<error-page>`: 웹 애플리케이션에서 발생하는 오류를 처리할 때 사용하는 태그로서 처리할 오류와 처리할 페이지가 무엇인지를 값으로 지정한다. 처리할 오류는 error-code나 exception-type 태그에 지정하며, 오류를 처리할 페이지는 location 태그에 지정한다.
+
+`<error-code>`: 처리할 오류를 지정하는 태그로서 오류 코드로 값을 지정한다.
+
+`<exception-type>`: 처리할 오류를 지젖ㅇ하는 또 다른 태그로서 오류가 정의된 객체 이름으로 지정한다. 객체 이름은 패키지 이름과 함께 정확하게 지정해야 한다.
+
+`<location>`: 오류가 발생했을 때 실행할 페이지 경로를 지정한다. `<location>`에 지정한 페이지는 오류가 발생하면 자동으로 실행된다.
+
+```java
+package com.edu.test;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+@WebServlet("/errorHandle")
+public class ErrorHandleServlet extends HttpServlet {
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		res.setContentType("text/html;charset=UTF-8");
+		PrintWriter out = res.getWriter();
+
+		Integer code = (Integer) req.getAttribute("javax.servlet.error.status_code");
+		String message = (String) req.getAttribute("javax.servlet.error.message");
+		Object type = req.getAttribute("javax.servlet.error.exception_type");
+		Throwable exception = (Throwable) req.getAttribute("javax.servlet.error.exception");
+		String uri = (String) req.getAttribute("javax.servlet.error.request_uri");
+
+		out.print("<h2>Error Code    : " + code + "</h2>");
+		out.print("<h2>Error Message : " + message + "</h2>");
+		out.print("<h2>Error Type    : " + type + "</h2>");
+		out.print("<h2>Error Object: " + exception + "</h2>");
+		out.print("<h2>Error URI     : " + uri + "</h2>");
+
+		out.close();
+	}
+}
+```
 
 ***
 
 
 [^1]: 환경설정 파일
 [^2]: 클라이언트가 요청한 페이지가 실행되다가 다른 페이지로 이동하는 것
+[^3]: 이벤트 핸들러
+[^4]: 가장 많이 사용
