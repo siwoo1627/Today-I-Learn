@@ -1,7 +1,7 @@
 # Today-I-Learn
 
 ## Java
-<ul><li>Java의 정석</li>
+<ul><li><a href="https://github.com/siwoo1627/Today-I-Learn/tree/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D">Java의 정석</a></li>
 <ul><li><details><summary>접기/펼치기</summary>
 	<ul><li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/Basic.md">Basic</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EA%B0%9D%EC%B2%B4%20%EC%A7%80%ED%96%A5(Object-oriented%20Programming).md">객체 지향(Object-oriented Programming)</a></li>
@@ -12,7 +12,9 @@
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EC%93%B0%EB%A0%88%EB%93%9C.md">쓰레드</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC(Lambda%20%26%20stream).md">람다와 스트림(Lambda & stream)</a></li>
 		<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/Java%EC%9D%98%20%EC%A0%95%EC%84%9D/%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%82%B9.md">네트워킹</a></li></ul>
-</details></li></ul></ul>
+</details></li></ul>
+<li><a href="https://github.com/siwoo1627/Today-I-Learn/blob/main/Java/%EC%8A%A4%ED%94%84%EB%A7%81%20%EC%9E%85%EB%AC%B8%EC%9D%84%20%EC%9C%84%ED%95%9C%20%EC%9E%90%EB%B0%94%20%EA%B0%9D%EC%B2%B4%20%EC%A7%80%ED%96%A5%EC%9D%98%20%EC%9B%90%EB%A6%AC%EC%99%80%20%EC%9D%B4%ED%95%B4.md">스프링 입문을 위한 자바 객체 지향의 원리와 이해</a></li>
+</ul>
 
 
 
