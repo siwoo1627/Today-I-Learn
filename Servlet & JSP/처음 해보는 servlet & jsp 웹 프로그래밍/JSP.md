@@ -170,3 +170,256 @@ JSP 기술은 템플릿 데이터에 동적인 데이터를 끼워 넣을 수 �
 
 ***
 
+### 내장객체
+
+: JSP 파일에서 자바 소스로 변환될 때 _jspService() 메소드에 자동으로 선언 및 초기화되는 객체들을 의미한다.
+
+* `<% %>`, `<%= %>` 태그에서는 내장 객체를 바로 사용할 수 있다.
+
+```java
+	public void _jspService(final javax.servlet.http.HttpServletRequest request,
+			final javax.servlet.http.HttpServletResponse response)
+			throws java.io.IOException, javax.servlet.ServletException {
+
+		/* 생략 */
+
+		final javax.servlet.jsp.PageContext pageContext;
+		javax.servlet.http.HttpSession session = null;
+		final javax.servlet.ServletContext application;
+		final javax.servlet.ServletConfig config;
+		javax.servlet.jsp.JspWriter out = null;
+		final java.lang.Object page = this;
+		javax.servlet.jsp.JspWriter _jspx_out = null;
+		javax.servlet.jsp.PageContext _jspx_page_context = null;
+
+		try {
+			response.setContentType("text/html");
+			pageContext = _jspxFactory.getPageContext(this, request, response, null, true, 8192, true);
+			_jspx_page_context = pageContext;
+			application = pageContext.getServletContext();
+			config = pageContext.getServletConfig();
+			session = pageContext.getSession();
+			out = pageContext.getOut();
+			_jspx_out = out;
+			/* 생략 */
+	}
+```
+
+내장 객체 request의 타입은 HttpServletRequest이며 요청정보를 처리한다.
+
+내장 객체 response의 타입은 HttpServletResponse이며 응답정보를 처리한다.
+
+내장 객체 session의 타입은 HttpSession이며 클라리언트 단위로 처리되는 객체이다.
+
+내장 객체 out의 타입은 JspWrite이며 클라이언트 쪽에 출력 처리 객체이다.
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<html>
+<head><title>Input</title></head>
+<body>
+
+<% if(session.isNew()||session.getAttribute("id")==null){ %>
+   <%
+       String msg = (String)request.getAttribute("error");
+       if(msg==null)  msg ="";
+   %>
+   <%= msg %>
+
+	<form action="example10.jsp" method="post">
+		ID: <input type="text" name="id"><br> 
+		비밀번호:<input type="password" name="pwd"><br> 
+		
+		<input type="submit" value="로그인">
+	</form>
+<%}else{ %>	
+	<a href="example10.jsp">로그 아웃</a>
+<%} %>	
+</body>
+</html>
+```
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" %>
+
+<html>
+<head><title>Result</title></head>
+<body>
+
+<%  if(request.getMethod().equals("POST")) {%>
+	<%
+	   String id = request.getParameter("id");
+	   String pwd = request.getParameter("pwd");
+	   // 유효성 체크 
+	   if(id.isEmpty() || pwd.isEmpty()){
+		   request.setAttribute("error", "ID 또는 비밀번호를 입력해주세요!");
+		   RequestDispatcher rd = request.getRequestDispatcher("logInOut.jsp");
+		   rd.forward(request,response);
+		   return;
+	   }
+	   
+	   //로그인 처리
+	   if(session.isNew() || session.getAttribute("id") == null ){
+		   session.setAttribute("id", id);
+		   out.print("로그인 작업이 완료되었습니다.");
+	   }else{
+		   out.print("이미 로그인 상태입니다.");
+	   }
+	%>
+	<%= id %> / <%= pwd %>
+
+<% }else if(request.getMethod().equals("GET")){
+	
+	   if(session!=null&&session.getAttribute("id")!=null){
+	      session.invalidate();
+	      out.print("로그아웃 작업이 완료되었습니다.");
+	   }else{
+		   out.print("현재 로그인 상태가 아닙니다.");
+	   }
+	}
+%>
+
+<%
+	RequestDispatcher rd = request.getRequestDispatcher("logInOut.jsp");
+	rd.forward(request,response); // 로그인/로그아웃 작업 후 기존 화면으로 이동 처리
+%>
+</body>
+</html>
+```
+
+`session.isNew()`: HttpSession 객체를 추출할 때 새로 생성해서 반환하면 true이고, 기존에 있던 HttpSession 객체를 반환하면 fasle이다.
+
+`session!=null`: 현재 HttpSession 객체가 존재하는지 여부
+
+`session.invalidate();`: HttpSession 객체 삭제
+
+
+
+내장 객체 application의 타입은 ServletContext이며 웹 애플리케이션 단위로 처리되는 객체이다.
+
+* ServletContext는 웹 애플리케이션마다 하나씩, 서비스가 시작될 때 생성되는 객체로서, 서버에 대한 정보 추출과 웹 애플리케이션 단위로 상태 정보를 유지하기 위해 사용한다.
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+<title>application</title>
+</head>
+<body>
+서버명 : <%= application.getServerInfo() %><br>
+서블릿 버젼 : <%= application.getMajorVersion()%>.<%= application.getMinorVersion() %><br>
+<h3>/edu 리스트</h3>
+<%
+  java.util.Set<String> list = application.getResourcePaths("/");
+  
+  if(list != null){
+	  Object[] obj = list.toArray();
+	  for(int i=0;i<obj.length;i++){
+		  out.print(obj[i]+"<br>");
+	  }
+			  
+  }
+
+%>
+</body>
+</html>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/f9249fe8-4696-453b-a329-c098988a7e28)
+
+`java.util.Set<String> list = application.getResourcePaths("/");`: 인자로 지정한 디렉터리 목록을 반환한다.
+
+
+
+내장 객체 pageContext의 타입은 PageContext이며 JSP 페이지마다 하나씩 생성된다.
+
+PageContext는 JSP 내장 객체를 반환하는 메소드를 제공한다.
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<html>
+<head>
+<title>pageContext</title>
+</head>
+<body>
+	<%!public void work(String p, PageContext pc) {
+		try {
+			JspWriter out = pc.getOut();
+			if (p.equals("include")) {
+				out.print("-- include 전 -- <br>");
+				pc.include("test.jsp");
+				out.print("-- include 후 -- <br>");
+			} else if (p.equals("forward")) {
+				pc.forward("test.jsp");
+			}
+		} catch (Exception e) {
+			System.out.println("오류 발생!!");
+		}
+	}%>
+	<%
+		String p = request.getParameter("p");
+		this.work(p, pageContext);
+	%>
+</body>
+</html>
+```
+
+```jsp
+<!-- test.jsp -->
+<h3>hello</h3>
+```
+
+`JspWriter out = pc.getOut();`: out 내장 객체는 _jspService() 메소드 내에서 선언된 지역 변수이므로 초기화에서 사용 시 PageContext 내장 객체를 이용해야한다.
+
+> `<% ... %>`, `<%= ... %>`에서는 out 내장 객체 사용가능
+
+p값이 include이면 `include`로 포함되며 , forwad이면 test.jsp로 `forward`(이동) 됨
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/9bc4beb2-86ec-47f0-bbb8-87df197f6e39)
+
+***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***
+
