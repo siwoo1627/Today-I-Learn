@@ -379,11 +379,152 @@ p값이 include이면 `include`로 포함되며 , forwad이면 test.jsp로 `forw
 
 ***
 
+### 표준 액션 태그와 JSP 자바빈즈
+
+JSP의 XML 기반 태그는 표준 액션 태그와 커스텀 태그가 있다.
+
+`<태그 라이브러리 이름 : 태그 이름>`
+
+* 표준액션 태그 : JSP 컨테이너에서 기본으로 제공하는 태그
+  * `<jsp:output>`
+
+* 커스텀 태그: 개발자가 만들어 사용하는 태그
+  * `<a:output>`
 
 
+#### 표준액션태그
+
+표준 액션 태그 라이브러리 이름은 jsp이다.
+
+forward 표준 액션 태그는 다른 페이지로 이동시킨다.
+
+```jsp
+	<%
+		String p = request.getParameter("p");
+	%>
+	<jsp:forward page="<%=p%>" />
+```
+
+include 표준 액션 태그는 다른 페이지를 현재 페이지에 포함한다.
+
+```jsp
+	<h3>-- include 전 --</h3>
+	<jsp:include page="test.jsp" />
+	<h3>-- include 후 --</h3>
+```
+
+#### JSP 자바빈즈
+
+: JSP 표준 액션 태그로 접근할 수 있는 자바 클래스로서 값을 가지는 속성(멤버변수)과 값을 설정하는 메소드(setter), 값을 추출하는 메소드(getter)로 이루어져 있다.
+
+* JSP Bean은 JSP 컨테이너에 의해 동작하는 자바 객체이다.
+
+* JSP Bean은 패키지화해야 한다.
+
+* JSP Bean 멤버변수의 접근자는 private으로 선언한다.
+
+* JSP Bean은 기본 생성자를 가져야한다.
+
+* JSP Bean은 private으로 선언된 멤버변수의 getter, setter 메소드를 선언해야한다.
+
+```java
+package com.edu.beans;
+
+public class HelloBean {
+
+	private String name;
+	private String number;
+	
+	public HelloBean() {
+		this.name = "이름이 없습니다.";
+		this.number = "번호가 없습니다.";
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getNumber() {
+		return number;
+	}
+
+	public void setNumber(String number) {
+		this.number = number;
+	}
+}
+```
+
+* useBean 표준 액션 태그는 JSP Bean 객체를 생성하거나 이미 생성된 객체를 추출한다.
+  * `scope` : 4개 중 하나를 지정, 생략할 경우 page가 기본 적용
+    * page: 하나의 JSP 페이지에서만 사용
+    * request: 요청이 처리되는 동안 forward, include된 페이지 간에 사용
+    * session: 클라이언트 단위로 사용
+    * application: 웹 애플리케이션 단위로 사용
+  * `id`
+  * `class`
+
+```
+HelloBean hello = new HelloBean();
+=> <jsp:useBean class="com.edu.beans.HelloBean" id="hello" />
+```
+
+* getPropertty 표준 액션 태그는 JSP Bean의 getter 메소드를 호출한다.
+  * `name`: `useBean` 태그에 정의 해 놓은 id속성값과 동일하게 지정, name속성으로 자바빈을 참조
+
+  * `property`: 추출하려는 자바빈즈 객체의 멤버변수 이름을 지정
 
 
+```
+hello.getName();
+=> <jsp:getProperty property="name" name="hello" /><br>
+```
 
+* setPropertty 표준 액션 태그는 JSP Bean의 setter 메소드를 호출한다.
+  * `name`: `useBean` 태그에 정의 해 놓은 id속성값과 동일하게 지정, name속성으로 자바빈을 참조
+  * `property`: 수정하려는 자바빈즈 객체의 멤버변수 이름을 지정
+    * `property=*`: 자바빈 객체의 모든 속성값을 질의 문자열에서 찾아서 지정
+  * `value`: 변경하려는 값을 지정
+  * `param`: 질의 문자열에서 param 속성에 할당된 값과 같은 name의 값으로 자바빈의 속성값을 설정
+    * 설정값 생략할 경우 질의 문자열에서 `property`와 동일한 멤버변수를 가져감
+
+```
+hello.setName("Amy");
+=> <jsp:setProperty property="name" name="hello" value="Amy" />
+
+hello.setName(request.getParameter("irum"));
+=> <jsp:setProperty property="name" name="hello" param="irum" /> 
+```
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<html>
+<head>
+<title>Java Bean</title>
+</head>
+<body>
+	<jsp:useBean class="com.edu.beans.HelloBean" id="hello" />
+
+	<jsp:getProperty property="name" name="hello" /><br>
+	<jsp:getProperty property="number" name="hello" /><br>
+
+	<jsp:setProperty property="*" name="hello"/>
+
+	<hr>
+
+	<jsp:getProperty property="name" name="hello" /><br>
+	<jsp:getProperty property="number" name="hello" /><br>
+
+</body>
+</html>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/49066bf7-9b70-42bf-928c-6a2d2dd6f1da)
+
+***
 
 
 
