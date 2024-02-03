@@ -526,17 +526,227 @@ hello.setName(request.getParameter("irum"));
 
 ***
 
+### 데이터 베이스
+
+> DBMS(DataBase Management System)
+
+* JDBC[^1] 프로그래밍은 DB 서버와 접속하여 SQL 문을 실행하는 프로그램이다.
+* JDBC 프로그래밍 시 기본적으로 java.sql 패키지의 API들을 사용한다.
+* JDBC Driver는 java.sql의 인터페이스들을 구현한 클래스 파일들이다.
+
+```mermaid
+graph LR
+A[JDBC\n프로그래밍] -->B[DB API] -->C[JDBC\n드라이버] -->D[DB]
+```
+
+1. DB API: DB 작업을 하기 위해 사용하는 java.sql 패키지로서 SE에서 제공
+2. JDBC 드라이버: 실제 DB작업을 처리하는 파일로서 \WEB-INF/lib에 준비되어 있음
+3. DBMS: DBMS는 오라클 11g EE로 설치를 완료함
+
+#### JDBC 드라이버 로딩
+
+Class.forName() 메소드는 JDBC Driver 파일을 사용할 수 있도록 준비해준다.
+
+`Class.forName("oracle.jdbc.driver.OracleDriver");`
+
+#### DBMS 서버 접속
+
+DriverManager.getConnection()은 DB 서버와 접속한 후 Connection을 반환한다.
+
+`static Connection getConnection(String url, String user, String password)`
+
+* String url (jdbc:oracle:thin:@localhost:1521:xe)
+  * jdbc:oracle:thin: -> 오라클 protocol
+  * @localhost -> 서버주소
+  * 1521 -> 서버포트
+  * xe: DB이름
+* String user: DB 서버에 로그인할 계정
+* String password: DB 서버에 로그인할 비밀번호
+
+Connection의 메소드를 사용하여 Statement와 PreparedStatement를 생성한다.
+
+* Connection 객체가 길이라면 Statement 객체는 서로에세 데이터를 전달해주는 객체이다
+
+#### Statement 객체
+
+Statement와 PreparedStatement의 executeUpdate(), executeQuery() 메소드를 사용하여 SQL 문을 실행한다.
+
+* executeQuery(): ResultSet[^2]을 반환, select 문 사용
+* executeUpdate(): int를 반환, 나머지 명령문 사용
+
+#### PreparedStatement 객체
+
+: Statement 객체와 같은 기능을 수행하는 객체로서, 연결된 DB에 SQL 문을 실행한 후 결괏값을 가져오는 메소드를 가지고 있다. Statement와 다른 점은 PreparedStatement 객체는 생성 시 SQL문을 `?` 기호와 함께 작성할 수 있다.
+
+#### close
+
+* DB서버와의 작업이 완료된 후에는 모든 자원을 해제한다. 해제 시 close() 메소드를 사용한다.
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*" %>
+
+<%
+	// 1. JDBC Driver 로딩하기
+	Class.forName("oracle.jdbc.driver.OracleDriver");
+	// 2. DB 서버 접속하기
+	String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	Connection conn = DriverManager.getConnection(url,"scott","tiger");
+	// 3. Statement or PreparedStatement 객체 생성하기
+	String id = request.getParameter("id");
+	String pwd = request.getParameter("pwd");
+	
+	Statement stmt = conn.createStatement();
+	stmt.executeUpdate("insert into test values ('"+id+",'"+pwd+"')");
+	
+	PreparedStatement pstmt = conn.prepareStatement("insert into test values(?,?)");
+	pstmt.setString(1, id);
+	pstmt.setString(2, pwd);
+	pstmt.executeUpdate();
+	// 4. SQL 실행하기
+	stmt.executeUpdate("create table test(id varchar2(5), pwd varchar2(5))");
+	// 5. 자원해제
+	stmt.close();
+	// 6. 연결해제
+	conn.close();
+%>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/c2820892-6fa4-4945-bbd6-6fbd4d5d2089)
+
+#### DataSource
+
+##### Connection Pool
+
+: Connection Pool은 Connection 객체를 프로그램이 실행될 때마다 생성하는 것이 아니라, 웹 애플리케이션이 서비스되기 전에 웹서버에서 미리 생성하여 준비한 다음, 필요할 때 준비된 Connection을 가져다 사용함으로써 JDBC 프로그래밍 문제점들을 개선한 기술이다.
+
+* Connection Pool은 여러 개의 Connection을 갖는 서버 자원이다.
+
+##### DataSource
+
+* DataSource는 Connection Pool을 관리하는 목적을 사용되는 객체이다.
+* JNDI Server를 통해서 이용된다.
+* DataSource 객체를 통해서 Connection을 얻어오고 반납하는 등의 작업을 수행한다.
+
+##### JNDI(Java Naming and Directory Interface)
+
+: JNDI는 API와 SPI로 이루어져 있으며, API는 애플리케이션에서 네이밍 혹은 디렉터리 서비스에 접근하는 데 사용하며, SPI는 새로운 서비스를 개발할 때 사용된다.
+
+> Naming and Directory 서비스는 흔히 DNS 서버의 기능과 같다.(도메인과 IP 주소만을 연결해주는 기능...)
+
+* JNDI 서버는 분산환경에서 서버 자원을 접근할 수 있도록 해준다.
+
+##### 이용방법
+
+1. JNDI Server에서 lookup() 메소드를 통해 DataSource 객체를 획득한다.
+2. DataSource 객체의 getConnection() 메소드를 통해서 Connection Pool에서 Free 상태의 Connection을 획득한다.
+3. Connection 객체를 통한 DBMS 작업을 수행한다.
+4. 모든 작업이 끝나면 DataSource 객체를 통해서 Connection Pool에 Connection을 반납한다.
+
+##### 구현
+
+1. server.xml 설정
+
+```xml
+  <GlobalNamingResources>
+    <!-- Editable user database that can also be used by
+         UserDatabaseRealm to authenticate users
+    -->
+    <Resource driverClassName="oracle.jdbc.driver.OracleDriver" 
+    url="jdbc:oracle:thin:@127.0.0.1:1521:xe" 
+    username="scott" 
+    password="tiger" 
+    name="jdbc/myoracle" 
+    type = "javax.sql.DataSource"
+    maxActive="4"
+    maxIdel="2"
+    maxWait="5000"
+    />
+  </GlobalNamingResources>
+```
+
+* driverClassName: DB 작업을 위해 로딩할 JDBC 드라이버 파일에 드라이버 인터페이스를 상속하는 파일명을 전체 이름 으로 지정합니다. Class forName( ) 메소드의 인자값입니다.
+* url: 접속할 DB 서버의 URL을 지정합니다.
+* username: DB 서버에 로그인할 계정을 지정합니다.
+* password: DB 서버에 로그인할 계정의 비밀번호를 지정합니다.
+* name: 현재 리소스를 등록할 이름을 지정합니다.
+* type: 리소스의 타입을 지정합니다. Connection Pool을 사용할 수 있도록 해주는 객체의 타입은 javax. sql.DataSource 입 니다.
+* maxActive: 생성할 Connection 수를 지정합니다.
+* maxidle: 일반적으로 활용할 Connection 수를 지정합니다.
+* maxWait: Connection의 사용 요청이 있을 때 대기 시간을 지정합니다. 5000은 5초를 의미하며, 5초가 지난 후에도 Conection을 얻지 못하면 Exception 발생합니다.
+
+2. context.xml 설정내용 추가
+
+```xml
+<ResourceLink global="jdbc/myoracle" name="jdbc/myoracle" type="javax.sql.DataSource" />
+```
+
+3. web.xml 설정
+
+```xml
+	<resource-ref>
+		<description>Oracle DataSource example</description>
+		<res-ref-name>jdbc/myoracle</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+```
+
+* description: 리소스에 대한 설명을 지정
+* res-ref-name: 사용하고자 하는 리소스의 이름을 지정
+* res-type: 사용하고자 하는 리소스의 타입을 지정
+* res-auth리소스에 대한 권한이 누구인지 지정
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*" %>
+<%@ page import="javax.sql.*" %>
+<%@ page import="javax.naming.*" %>
+
+<%
+	// 1.JDNI 서버 객체 생성
+	InitialContext ic = new InitialContext();
+	// 2. lookup()
+	DataSource ds = (DataSource) ic.lookup("java:comp/env/jdbc/myoracle");
+	// 3. getConnection()
+	Connection conn = ds.getConnection();
+	
+	Statement stmt = conn.createStatement();
+	ResultSet rs = stmt.executeQuery("select * from test");
+	
+	while(rs.next()){
+		out.print("<br>"+rs.getString("id")+":"+rs.getString(2));
+	}
+	
+	rs.close();
+	stmt.close();
+	conn.close();
+%>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/9203816f-a35e-441d-8e72-617769714d8d)
+
+`InitialContext ic = new InitialContext();`
+Connection Pool에 접근하려면 JNDI 서비스를 사용해야 합니다. JNDI는 서비에서 관리하고 있는 리소스에 대한 정보를 알고 있고 특정 리소스를 찾아서 사용할 수 있도록 객체를 반환해주는 역할을 합니다. JNDI 서버 역할을 하는 객체를 생성합니다. 리소스가 로컬에 있을 때는 단순히 InitialContext  객체만 생성하면 됩니다.
 
 
 
+`DataSource ds = (DataSource) ic.lookup("java:comp:env/jdbc/myoracle");`
+
+`ic.lookup()`은 리소스를 찾은 후 리소스를 사용할 수 있도록 객체를 반환해주는 메소드입니다. lookup() 메소드의 인자값으로는 찾으려는 리소스의 등록된 이름을 지정합니다. 우리가 찾으려는 리소스의 이름은 `jdbc/myoracle`입니다. 그래서 `lookup("jdbc/myoracle")`으로 해야 하는데 `lookup("java: comp/env/jdbc/myoracle")`을 지정했습니다. 이것은 WAS로 톰켓을 이용하기 때문입니다. 톰캣에서는 리소스를 관리하는 가상의 디렉터리가 있는데. 경로가 `java:comp/env`입니다. 그래서 톰캣을 사용할 때는 리소스 이름 앞에 `java.comp/env`의 경로를 지정해 주어야 합니다.
+
+lookup() 메소드가 반환하는 객체의 타입은 Object이기 때문에 원래 리소스 타입으로 타입 변환 작업을 해야 합니다. `(Datasource) ic.lookup("java: comp/env/jdbc/myoracle");`는 반환받은 값을 DataSource로 타입 변환을 하고 있습니다. DataSource 객체는 Connection Pool 리소스의 데이터 타입입니다.
 
 
 
+`Connection conn = ds.getConnection();`
+ds 변수는 DataSource입니다. DataSource객체의 getConnection()는 Connection Pool에 준비 된 Connection 객체를 빌려오는 메소드입니다. 빌려온 Connection을 conn으로 받았습니다.
 
+***
 
-
-
-
+### EL
 
 
 
@@ -564,3 +774,23 @@ hello.setName(request.getParameter("irum"));
 
 ***
 
+### 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***
+
+[^1]: Java DataBase Connectivity
+[^2]: SELECT 문을 실행한 결괏값을 가지는 객체
