@@ -746,19 +746,115 @@ ds 변수는 DataSource입니다. DataSource객체의 getConnection()는 Connect
 
 ***
 
-### EL
+### EL(Expression Language)
 
 
 
+EL은 서블릿 기능을 JSP보다 간단하게 표현할 수 있는 기술이다.
+
+EL은 `${ }` 내에 표현식으로 표현한다.
+
+논리, 숫자, 문자, 연산자, 변수를 사용하여 표현식을 작성한다.
+
+EL은 산술, 논리, 비교, empty 연산자가 있다.
+
+EL은 요청정보, scope에 관한 내장 객체를 지원한다.
+
+EL은 scope에 저장된 데이터를 `${ 이름 }`으로 간단하게 추출할 수 있다.
 
 
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<html>
+<head>
+<title>EL</title>
+</head>
+<body>
+	${param.id }   / ${param.pwd }    <br>
+	${param["id"]} / ${param["pwd"]}
+    <jsp:forward page="${param.p}"></jsp:forward>
+	<%
+		Enumeration<String> list = request.getHeaderNames();
+		while (list.hasMoreElements()) {
+			String key = list.nextElement();
+			out.print("<br>" + key + " : " + request.getHeader(key));
+		}
+	%>
+<hr>
+${header}
+</body>
+</html>
+```
+
+* `request.getHeaderNames()` 메소드는 요청정보의 헤더에서 헤더정보의 이름들만 추출하여 반환하는 메소드이다.
+
+* `request.getHeader(key)` 메소드는 key 변수에 저장된 헤더의 이름에 매핑된 값을 추출한다.
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+<title>Book Input</title>
+</head>
+<body>
+<form action="example22.jsp" method="post">
+  책제목 : <input type="text" name="title"><br>
+  책저자 : <input type="text" name="author"><br>
+  출판사 : <input type="text" name="publisher"><br>
+  <input type="submit" value="등록" >
+</form>
+</body>
+</html>
+```
 
 
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ page import ="com.edu.beans.BookBean" %>
+<html>
+<head>
+<title>example</title>
+</head>
+<body>
+	<jsp:useBean id="book" class="com.edu.beans.BookBean" />
+	<jsp:setProperty property="*" name="book" />
+	<%
+		request.setAttribute("book", book);
+		//session.setAttribute("book", book);
+		//application.setAttribute("book", book);
+	%>
+	<jsp:forward page="bookOutput.jsp" />
+</body>
+</html>
+```
 
+* `request.setAttribute("book", book);` 는 아래와 같다.
 
+```jsp
+book.setTitle(request.geParameter("title"));
+book.setAuthor(request.geParameter("author"));
+book.setPublisher(request.geParameter("publisher"));
+```
 
+* request는 HttpServletRequest 내장 객체이므로 setAttribute를 통해 HttpServletRequest  객체에 book이란 이름을 변수 book의 값을 등록한다.
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+<title>Book Output</title>
+</head>
+<body>
+	책제목 : ${book.title} <br> 
+	책저자 : ${book.author} <br>
+	출판사 : ${book.publisher}
+</body>
+</html>
+```
+
+* EL 구문으로 `${book}`처럼 표현하는 경우에는 request, session, application 객체 순서로 `getAttrinbute("book")` 메소드를 실행한다. requst 객체에서 먼저 `getAttrinbute("book")`을 실행하고 만약 request 객체에 book이 없을 경우 session 등의 순서로 실행한다.
 
 
 
@@ -774,11 +870,10 @@ ds 변수는 DataSource입니다. DataSource객체의 getConnection()는 Connect
 
 ***
 
-### 
-
-
-
-
+12. 커스텀태그: 55
+13. JSTL: 40
+14. 웹 애플리케이션 디자인 패턴: 22
+15. CURD 웹 애플리케이션 프로젝트: 52
 
 
 
