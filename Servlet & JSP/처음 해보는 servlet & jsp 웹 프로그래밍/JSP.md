@@ -856,7 +856,9 @@ book.setPublisher(request.geParameter("publisher"));
 
 * EL 구문으로 `${book}`처럼 표현하는 경우에는 request, session, application 객체 순서로 `getAttrinbute("book")` 메소드를 실행한다. requst 객체에서 먼저 `getAttrinbute("book")`을 실행하고 만약 request 객체에 book이 없을 경우 session 등의 순서로 실행한다.
 
+***
 
+### 커스텀태그
 
 
 
