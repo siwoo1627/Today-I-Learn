@@ -860,62 +860,586 @@ book.setPublisher(request.geParameter("publisher"));
 
 ### 커스텀태그
 
+: 커스텀 태그는 개발자가 직접 만들어 사용하는 XML 기반 태그이다.
+
+* UI에서 반복되는 내용을 한 번만 작성한 후 JSP 태그와 매핑한다.
+* 커스텀 태그는 클래스 기반과 태그 기반 형태의 개발 방법이 있다.
+
+#### 클래스 기반 커스텀 태그
+
+: 태그의 기능을 자바 클래스 파일에 구현한 다음, JSP 태그와 연결해서 사용한다.
+
+* 클래스 기반 커스텀 태그는 상속받는 객체에 따라 1.2과 2.1 버전이 있다.
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/6cd83e86-8bc3-4121-8613-1a5e9dd65662)
+
+**태그 핸들러 클래스(Tag Handler Class)**
+커스팀 태그를 사용할 때 호출되는 자바 클래스 파일입니다. 커스팀 태그가 수행해야 하는 실행문을 구현하고 있는 자바 객체입니다.
+
+**태그 라이브러리 디스크립터(Tag Library Descriptor=TLD)**
+
+: TLD 파일은 태그 핸들러 클래스와 JSP 페이지에서 사용할 태그 이름을 매핑하여 커스텀 태그를 동작할 수 있게 하는 커스텀 태그 환성설정 파일이며 XML 형태이다.
+
+* 커스텀 태그가 수행해야 하는 실행문은 태그 핸들러 클래스에 구현한다.
+* JSP 페이지 내에서 사용할 때는 클래스를 직접 사용하는 것이 아니라, JSP 커스텀 태그 이름으로 사용한다.
+
+* `.tld` 확장자를 사용한다.
+
+**TLD 파일 등록**
+TLD 파일에는 자바 클래스와 JSP 태그를 매핑한 정보가 있습니다. 즉, 커스텀 태그에 대한 정보가 있습니다. 개발자가 만들어 사용하는 커스텀 태그를 JSP 페이지에서 사용하려면 TLD 파일을 JSP 컨테이너 가 인식할 수 있도록 등록해야 합니다. JSP 1.2 버전에서는 web.xml에 등록해야 했지만, JSP 2.0 버전 부터는 WEB-INF 폴더에 넣으면 자동으로 인식합니다.
+
+1. web.xml (JSP 1.2)
+
+```xml
+<taglib>
+	<taglib-uri>TLD 파일의 이름</taglib-uri>
+    <tablib-location>TLD 파일의 위치</tablib-location>
+</taglib>
+```
+
+2. 자동인식 (JSP 2.0)
+   * WEB-INF 폴더 또는 WEB-INF의 하위폴더
+   * WEB-INF/lib 폴더의 jar 파일에 위치
+
+**taglib 지시자**
+JSP 페이지에서 커스텀 태그를 사용하려면 우선 어떤 커스텀 태그를 사용할지를 taglib 지시자를 사용하여 선언해야 합니다. taglib 지시자는 태그 라이브러리의 uri와 prefix 값을 속성으로 가집니다. taglib 지시자는 커스텀 태그가 정의된 TLD와 JSP 파일을 연결해줍니다.
+
+* 클래스 기반 커스텀 태그는 JSP 파일에서 `<%@ taglib prefix="" uri="" %>` 선언 후 사용한다.
 
 
-커스텀 태그는 개발자가 직접 만들어 사용하는 XML 기반 태그이다.
 
-커슽텀 태그는 클래스 기반과 태그 기반 형태의 개발 방법이 있다.
+##### JSP 1.2
 
-클래스 기반 커스텀 태그는 상속받는 객체에 따라 1.2과 2.1 버전이 있다.
+> /edu/src/com/edu/customTag/MyCustomTag.java
 
-태그 핸들러 클래스는 커스텀 태그의 기능을 구현한 자바 클래스이다.
+```java
+package com.edu.customTag;
 
-TLD 파일은 커스텀 태그에 관한 환경설정 파일이다.
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.TagSupport;
 
-커스텀 태그를 사용하기 위해 웹서버에 TLD 파일을 등록해야 한다. 1.2 버전은 web.xml에 `<taglib>`로 등록하며 2.1 버전은 /WEB-INF 또는 하위 폴더에 저장하면 자동 등록된다.
+public class MyCustomTag extends TagSupport {
+	int cnt = 1;
 
-클래스 기반 커스텀 태그는 JSP 파일에서 `<%@ taglib prefix="" uri="" %>` 선언 후 사용한다.
+	private String color;
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	@Override
+	public int doStartTag() throws JspException {
+		System.out.println("시작태그를 만났습니다.");
+		System.out.println("color 속성 값 : " + color);
+		return EVAL_BODY_INCLUDE;
+	}
+
+	@Override
+	public int doAfterBody() throws JspException {
+		System.out.println("body 처리가 끝났습니다. : " + cnt);
+		return SKIP_BODY;
+	}
+
+	@Override
+	public int doEndTag() throws JspException {
+		System.out.println("끝태그를 만났습니다.");
+		return EVAL_PAGE;
+	}
+}
+```
+
+* `public class MyCustomTag extends TagSupport {` : `TagSupport`를 상속받았으므로 JSP 1.2 버전으로 만들어 진다.
+
+* `doStartTag()`: JSP 태그의 시작 태그를 만나면 자동으로 호출된다.
+* `doEndTag()`: JSP 태그의 끝 태그를 만나면 자동으로 호출된다.
+
+> /edu/WebContent/WEB-INF/myTag.tld
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN" "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd" >
+<taglib>
+	<tlib-version>1.0</tlib-version>
+	<jsp-version>1.2</jsp-version>
+	<short-name>myTags</short-name>
+	<tag>
+		<name>first</name>
+		<tag-class>com.edu.customTag.MyCustomTag</tag-class>
+		<tei-class>com.edu.customTag.MyCustomTagTEI</tei-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>color</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>
+```
+
+* `<name>first</name>`:  JSP 태그의 이름을 지정한다. JSP 페이지에서 사용하는 태그의 이름이다.
+
+* `<tag-class> </tag-class>`: `<name>`에 지정한 JSP 태그를 사용했을 때 실행할 로직을 가지고 있는 태그 핸들러 클래스 파일을 지정한다.
+
+* `<required>`: 속성 필수 여부 지정
+
+* `<rtexprvalue>`: 속성값을 동적으로 처리할 수 있게 한다. 속성값을 지정할 때 JSP태그나 EL표현식이 가능하다.
+
+##### JSP 2.1
+
+> web.xml
+
+```xml
+	<jsp-config>
+		<taglib>
+			<taglib-uri>http://myTags.com</taglib-uri>
+			<taglib-location>/WEB-INF/myTag.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+```
+
+> /edu/WebContent/example23.jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="my" uri="http://myTags.com" %>
+<html>
+<head>
+<title>Custom Tag</title>
+</head>
+<body>
+<my:first color="blue"> <%= 1+2 %> </my:first>
+<br>
+Custom Tag Test!
+</body>
+</html>
+```
+
+* `<%@ taglib prefix="my" uri="http://myTags.com" %>`: 
+  * `taglib` 는 JSP 페이지에 커스텀 태그를 사용하기 위해 선언하는 지시자 이다. uri에는 `web.xml`에 지정한 `<taglib-uri>` 값을 지정한다.
+  * `prefix`는 선언된 태그 라이브러리에 이름을 지정하는 속성이다. 여러 개의 태그 라이브러리 안에 등록된 태그의 이름들이 중복될 수도 있기 때문에 이를 명확하게 구분하기 위해 태그 라이브러리에 이름을 지정한다.
+
+* `<my:first color="blue"> <%= 1+2 %> </my:first>`: `<태그 라이브러리 이름:태그이름>` 형식으로 사용한다. my라는 태그 라이브러리의 first태그를 실행한다.
+
+##### 실행제어
+
+: 커스텀 태그는 실행 시 자동으로 호출되는 메소드가 정해져 있는데(doStartTag 등) 이 메소드들이 실행이 끝난 후, 처리해야할 작업은 각 메소드에서 반환하는 값에 따라 달라진다.
+
+```java
+	@Override
+	public int doStartTag() throws JspException {
+		System.out.println("시작태그를 만났습니다.");
+		System.out.println("color 속성 값 : " + color);
+        // return super.doStartTag();
+		return EVAL_BODY_INCLUDE;
+	}
+
+	@Override
+	public int doAfterBody() throws JspException {
+		System.out.println("body 처리가 끝났습니다. : " + cnt);
+		return SKIP_BODY;
+	}
+
+	@Override
+	public int doEndTag() throws JspException {
+		System.out.println("끝태그를 만났습니다.");
+		// return super.doEndTag()
+		return EVAL_PAGE;
+	}
+```
+
+###### EVAL_BODY_INCLUDE
+
+: 메소드가 종료된 후 태그의 몸체를 처리한다.
+
+* `doAfterBody()`: 태그의 몸체가 처리된 후 호출되는 메소드
+
+###### SKIP_BODY
+
+: 태그의 몸체를 처리하지 않고 스킵한다.
+
+###### EVAL_BODY_AGAIN
+
+: 몸체를 다시 실행하는 반환값이다.
+
+###### EVAL_PAGE
+
+: `doEndTag()` 메소드가 종료된 후 계속해서 JSP 페이지가 실행된다.
+
+###### SKIP_PAGE
+
+: `</my:first>` 이후 값이 실행되지 않는다.
+
+
+
+##### TEI(Tag Extra Infomation) 객체
+
+: Tag Handler 객체의 Helper 객체라고도 한다. TEI 객체는 TLD 파일에 지정하지 않은 커스텀 태그의 내용을 동적으로 변경하여 복잡성을 없애려고 할 때 사용한다.
+
+1. TagExtraInfo 객체를 상속한 후 커스텀 태그에 관한 부가적인 처리 내용을 구현한다.
+
+2. TLD 파일을 통해 TEI와 Tag Handler 객체를 연결한다.
+3. JSP 페이지에서 커스텀 태그가 사용되어 Tag Handler 객체가 실행되면서 TEI 객체도 자동으로 실행된다.
+4. TEI 객체가 실행될 때 자동으로 다음 순서로 메소드가 호출된다.
+   * setTagInfo()[^3] -> isValid()[^4] -> getVariableInfo()[^5]
+
+###### TagInfo
+
+: TLD 파일에 정의한 커스텀 태그에 대한 정보를 처리해준다.
+
+###### TagData
+
+: 커스텀 태그의 속성과 값을 처리하는 객체
+
+> /edu/src/com/edu/customTag/MyCustomTagTEI.java
+
+```java
+package com.edu.customTag;
+
+import javax.servlet.jsp.tagext.TagData;
+import javax.servlet.jsp.tagext.TagExtraInfo;
+
+public class MyCustomTagTEI extends TagExtraInfo {
+	@Override
+	public boolean isValid(TagData data) {
+		String color = data.getAttributeString("color");
+		if (color.equals("blue"))
+			return true;
+		else
+			return false;
+	}
+}
+```
+
+* `myTag.tld`에 `<tei-class>com.edu.customTag.MyCustomTagTEI</tei-class>` 추가
+
+###### JSP 2.1
+
+* JSP 2.0 이상의 버전으로 커스텀 태그를 작성할 때는 SimpleTag 인터페이스 계열을 상속받아 태그 핸들러 클래스를 작성해야 한다.
+
+* doStartTag, doAfterBody, doEndTag를 doTag로 간소화한다.
+
+> /edu/src/com/edu/customTag/MyCustomTag2.java
+
+```java
+package com.edu.customTag;
+
+import java.io.IOException;
+
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+
+public class MyCustomTag2 extends SimpleTagSupport {
+	@Override
+	public void doTag() throws JspException, IOException {
+		System.out.println("커스텀 태그의 바디가 실행되기 전");
+		for (int i = 0; i < 10; i++)
+			getJspBody().invoke(null);
+		System.out.println("커스텀 태그의 바디가 실행되기 후 ");
+	}
+}
+```
+
+* `getJspBody().invoke(null);`: JSPFragment 객체를 반환하는 메소드이다. JSPFragment  객체의 `invoke(Writer)` 메소드는 커스텀 태그의 몸체에 있는 내용을 추출한 다음, `invoke()` 메소드의 인자로 지정된 출력스트림에 추출된 내용을 출력한다.
+
+> /edu/src/com/edu/customTag/MyCustomTag3.java
+
+```java
+package com.edu.customTag;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
+import javax.servlet.jsp.JspContext;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.JspWriter;
+import javax.servlet.jsp.tagext.JspFragment;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+
+public class MyCustomTag3 extends SimpleTagSupport {
+	@Override
+	public void doTag() throws JspException, IOException {
+		JspContext context = this.getJspContext();
+		JspWriter out = context.getOut();
+
+		JspFragment body = this.getJspBody();
+		StringWriter sw = new StringWriter();
+		body.invoke(sw);
+		String str = sw.toString();
+		out.print(str.toUpperCase());
+		return;
+	}
+}
+```
+
+* `JspContext context = this.getJspContext();`: jsp페이지에 대한 정보를 가지는 객체
+
+* `JspWriter out = context.getOut();`: getOut()는 현재 jsp 페이지와  서비스를 요청한 클라이언트 간에 연결된 출력스트림인 JspWriter를 추출하여 반환하는 메소드이다.
+* `JspFragment body = this.getJspBody();`: getJspBody 는 커스텀 태그의 몸체를 처리하는 JspFragment 객체를 추출하는 메소드이다.
+* `StringWriter` 객체ㄹ는 문자열을 String 버퍼에 출력한다.
+
+* `toUpperCase`: 대문자로 변경
+
+> /edu/src/com/edu/customTag/MyCustomTag4.java
+
+```java
+package com.edu.customTag;
+
+import java.io.IOException;
+
+import javax.servlet.jsp.JspContext;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.JspWriter;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+
+public class MyCustomTag4 extends SimpleTagSupport {
+	private int num1;
+	private int num2;
+
+	public int getNum1() {
+		return num1;
+	}
+
+	public void setNum1(int num1) {
+		this.num1 = num1;
+	}
+
+	public int getNum2() {
+		return num2;
+	}
+
+	public void setNum2(int num2) {
+		this.num2 = num2;
+	}
+
+	@Override
+	public void doTag() throws JspException, IOException {
+		JspContext context = this.getJspContext();
+		JspWriter out = context.getOut();
+		out.print(num1 + "+" + num2 + "=" + (num1 + num2));
+	}
+}
+```
+
+> /edu/WebContent/WEB-INF/myTag2.tld
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib version="2.1" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd ">
+	<tlib-version>1.0</tlib-version>
+	<short-name>myTags2</short-name>
+	<uri>http://myTags2.com</uri>
+
+	<tag>
+		<name>second</name>
+		<tag-class>com.edu.customTag.MyCustomTag2</tag-class>
+		<body-content>scriptless</body-content>
+	</tag>
+
+	<tag>
+		<name>third</name>
+		<tag-class>com.edu.customTag.MyCustomTag3</tag-class>
+		<body-content>scriptless</body-content>
+	</tag>
+
+	<tag>
+		<name>fourth</name>
+		<tag-class>com.edu.customTag.MyCustomTag4</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>num1</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.Integer</type>
+		</attribute>
+		<attribute>
+			<name>num2</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.Integer</type>
+		</attribute>
+
+	</tag>
+</taglib>
+```
+
+* `<body-content>scriptless</body-content>`:  스크립트 태그를 사용할 수 없다.
+
+> /edu/WebContent/example24.jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="my2" uri="http://myTags2.com"%>
+<html>
+<head>
+<title>Custom Tag2</title>
+</head>
+<body>
+	<my2:second> hello~ </my2:second><br>
+	<my2:third>hello~</my2:third><br>
+	<my2:fourth  num1="10"  num2="20"/>
+	<br> Custom Tag Test!
+</body>
+</html>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/cf17cd14-eaca-42e2-8b93-7b429f52b3c7)
+
+#### 태그 기반 커스텀 태그
+
+: 자바 클래스 파일로 태그의 기능을 구현하는 것이 아니고, JSP 파일에 직접 구현하므로 JSP를 작성할 수만 있다면 쉽게 구현할 수 있다.
 
 태그 기반 커스텀 태그는 JSP 파일에 커스텀 태그 기능을 구현 후 확장자를 tag로 지정한다.
 
-태그 기반 커스텀 태그는 /WEB-INF/tags 또는 하위 폴더에 저장하면 자동 인식된다.
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/e1c5011e-3de6-4f9c-9b95-b009e27d0e4d)
 
-태그 기반 커스텀 태그는 JSP 파일에서 `<%@ taglib prefix="" tagdir="" %>` 선언 후 사용한다.
+1. 태그 파일을 작성하여 저장한다. 저장되는 위치는 /WEB-INF/tags 또는 하위 폴더에 저장하면 자동 인식된다.
+2. 태그 기반 커스텀 태그는 JSP 파일에서 `<%@ taglib prefix="" tagdir="" %>` 선언 후 사용한다.
+3. 태그 파일을 커스텀 태그로 사용할 때는 taglib의 tagdir 속성에 태그 파일(.tag)들이 위차한 폴더를 지정한다.
+4. tagdir 속성에 지정한 폴더의 태그 파일(.tag)들은 각각 파일 하나당 하나의 커스텀 태그로 사용된다.
 
+> /edu/WebContent/WEB-INF/tags/sum.tag
 
+```jsp
+<%@ tag body-content="empty" pageEncoding="utf-8"  %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
+<%@ attribute name="num1" required="true"  %>
+<%@ attribute name="num2" required="true"  %>
+<%@ variable name-given="result"  variable-class="java.lang.Long" scope="AT_END" %>
 
+<c:set  var="result"  value="${num1+num2}" />
+```
 
+> /edu/WebContent/example26.jsp
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
 
+<%@ taglib  prefix="my"  tagdir="/WEB-INF/tags"   %>
 
+<my:sum num1="12" num2="34" />
+덧셈 결과 : ${result}
+```
 
+***
 
+> /edu/WebContent/WEB-INF/tags/chart.tag
 
+```jsp
+<%@ tag body-content="scriptless" pageEncoding="utf-8"%>
 
+<%@ attribute name="title" required="true"%>
+<%@ attribute name="color" required="true"%>
 
+<p>
+	<table border="1">
+		<tr>
+			<th>${title}</th>
+		</tr>
+		<tr>
+			<td bgcolor="${color}"><jsp:doBody /></td>
+		</tr>
+	</table>
+```
 
+> /edu/WebContent/example27.jsp
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="my" tagdir="/WEB-INF/tags"%>
 
+<my:chart color="#F4FA58" title="서  적">
+소  설<br>
+역  사<br>
+인  문<br>
+</my:chart>
 
+<my:chart color="#58ACFA" title="운  동">
+축  구<br>
+배  구<br>
+농  구<br>
+</my:chart>
+```
 
+***
 
+>/edu/WebContent/WEB-INF/tags/select.tag
 
+```jsp
+<%@ tag body-content="empty" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
+<%@ tag dynamic-attributes="options"%>
+<%@ attribute name="location" required="true"%>
 
+<select name="${location}">
+	<c:forEach var="item" items="${options}">
+		<option value="${item.key}">${item.value}</option>
+	</c:forEach>
+</select>
+```
 
+* `<%@ tag dynamic-attributes="options"%>`: `dynamic-attributes`은 동적으로 속성과 값을 받아들이겠다고 선언하며 내부적으로 Map 객체가 생성된다.
+  * 이 Map의 이름은 options로 지정된다.
+* `<c:forEach var="item" items="${options}">`: options 에 등록된 데이터 수만큼 반복 실행
 
+> /edu/WebContent/example28.jsp
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="my" tagdir="/WEB-INF/tags"%>
 
-
-
-
-
+<my:select location="korea" seoul="서울" daejun="대전" busan="부산" jeju="제주" />ㅂ
+```
 
 ***
 
 ### JSTL(Java Server Pages Standard Tag Library)
 
+: JSP에서 사용하는 태그 라이브러리를 공통으로 사용하기 위해 정해진 표준
+
+* JSTL은 Java Server Pages Standard Tag Library의 약자로 JSP에서 사용하는 태그 라이브러리를 공통으로 사용하기 위해 정해진 표준이다.
+* JSTL에서 지원하는 taglib 지시자의 prefix와 uri 속성값은 다음과 같다.
+  * CORE: `<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>`
+  * Formatting: `<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>`
+  * SQL: `<%@ taglib prefix-"sql" uri= http://java.sun.com/jsp/jstl/sql" %>`
+  * XML: `<%@ taglib prefix-"x" uri="http://java.sun.com/jsp/jstl/xml" %>`
+  * Functions: `<%@ taglib prefix="fn" uri="http://java. sun.com/jsp/jstl/functions" %>`
+* `<c:set>`은 JSP 페이지에서 사용하는 변수를 설정하는 태그이다.
+* `<c:cout>`은 현재 JSP 페이지에 데이터를 출력하기 위해 사용하는 태그이다.
+* `<c:remove>`는 `<c:set>` 태그로 정의한 변수를 삭제하는 태그이다.
+* `<c:catch>`는 JSP 페이지 내에서 발생한 오류를 처리하는 태그이다.
+* `<c:if>`는 If 문장을 처리하기 위한 태그이다.
+* `<c:choose>`는 여러 개의 조건식을 사용하여 처리하고자 할 때 사용하는 태그이다.
+* `<c:forEach>`는 지정된 횟수만큼 명령문을 반복 실행하는 태그이다.
+* `<c:forTokens>`는 문자열을 특정 문자로 분리한 후 분리된 개수만큼 반복 수행하는 태그이다.
+* `<c:import>`는 외부 페이지를 현재 페이지에 삽입하거나 변수에 저장하는 태그이다.
+* `<c:url>`은 URL 정보를 생성해주는 태그이다.
+* `<c:redirect>`는 현재 실행 중인 페이지에서 다른 페이지로 이동할 때 사용하는 태그이다.
+* Properties 파일은 `name = value` 형태로 구성된 텍스트 파일이다.
+* `<fmt:setLocale>`은 로케일(locale)을 지정하는 태그이다.
+* `<fmt:setBundle>` 과 `<fmt:bundle>`는 프로퍼티 파일을 사용하는 태그이다.
+* `<fmt:message>`는 프로퍼터 파일의 값에 접근할 때 사용하는 태그이다.
+* `<fmt:requestEncoding>`은 요청정보의 인코딩 타입을 지정하는 태그이다.
+* `<fmt:formatNumber>`는 숫자, 퍼센트, 현재 통화를 표시하기 위해 사용하는 태그이다.
+* `<fmt:parseNumber>`는 숫자를 파싱하거나 퍼센트 통화를 표시하기 위해 사용하는 태그이다.
+* `<fmt:formatDate>`는 날짜를 표시하는 다양한 형식을 정의하기 위해 사용하는 태그이다.
+* `<fmt:parseDate>`는 다양한 방법의 날짜를 표시하기 위해 사용하는 태그이다.
+* `<fmt:timeZone>`은 태그의 몸체에 있는 모든 태그의 타임존을 지정하는 태그이다.
+* `<fmt:setTimeZone>`은 각각의 개별 범위에 타임존을 지정하는 태그이다.
+* `<sql:setDataSource>`는 DataSource를 생성하는 태그이다.
+* `<sql:query>`는 select 문을 수행하기 위해 사용하는 태그이다.
+* `<sql:update>`는 select 문이 아닌 SQL 문을 사용할 때 사용하는 태그이다.
+* `<sql:transaction>`는 트랜잭션을 구현할 때 사용하는 태그이다.
+* `<sql:param>`은 sql 질의문에 사용할 파라미터를 지정하는 태그이다.
+* `<sql:dateParam>`은 soL 질의문에 사용할 날짜 파라미터를 지정하는 태그이다.
+
 
 
 
@@ -932,10 +1456,9 @@ TLD 파일은 커스텀 태그에 관한 환경설정 파일이다.
 
 ***
 
-12. 커스텀태그: 55
-13. JSTL: 40
-14. 웹 애플리케이션 디자인 패턴: 22
-15. CURD 웹 애플리케이션 프로젝트: 52
+12. JSTL: 40
+13. 웹 애플리케이션 디자인 패턴: 22
+14. CURD 웹 애플리케이션 프로젝트: 52
 
 
 
@@ -951,3 +1474,6 @@ TLD 파일은 커스텀 태그에 관한 환경설정 파일이다.
 
 [^1]: Java DataBase Connectivity
 [^2]: SELECT 문을 실행한 결괏값을 가지는 객체
+[^3]: TagInfo 객체를 설정한다.
+[^4]: 속성값의 유효성을 체크한다.
+[^5]: 변수 정보 객체를 배열로 반환한다.
