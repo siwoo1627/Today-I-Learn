@@ -1402,49 +1402,286 @@ public class MyCustomTag4 extends SimpleTagSupport {
 
 ### JSTL(Java Server Pages Standard Tag Library)
 
-: JSP에서 사용하는 태그 라이브러리를 공통으로 사용하기 위해 정해진 표준
+: JSTL은 Java Server Pages Standard Tag Library의 약자로 JSP에서 사용하는 태그 라이브러리를 공통으로 사용하기 위해 정해진 표준이다.
 
-* JSTL은 Java Server Pages Standard Tag Library의 약자로 JSP에서 사용하는 태그 라이브러리를 공통으로 사용하기 위해 정해진 표준이다.
+> 커스텀 태그를 만들지 않아도 커스텀 태그를 사용할 수 있다.
+
 * JSTL에서 지원하는 taglib 지시자의 prefix와 uri 속성값은 다음과 같다.
   * CORE: `<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>`
   * Formatting: `<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>`
   * SQL: `<%@ taglib prefix-"sql" uri= http://java.sun.com/jsp/jstl/sql" %>`
   * XML: `<%@ taglib prefix-"x" uri="http://java.sun.com/jsp/jstl/xml" %>`
   * Functions: `<%@ taglib prefix="fn" uri="http://java. sun.com/jsp/jstl/functions" %>`
+
+#### CORE
+
+: 프로그램 개발 시 사용되는 기본적인 기능
+
 * `<c:set>`은 JSP 페이지에서 사용하는 변수를 설정하는 태그이다.
+  * `<c:set value="value" var="varName" [scope="{page|request|session|application}"] />`
+    * `var`: 변수의 이름을 지정
+    * `value`: 변수의 값을 지정한다. 문자열, EL, 표현식 형태로 지정할 수 있다.
+  * `<c:set value="value" target="target" property="propertyName" />`
+    * `target`: setter 메소드를 호출할 자바 객체를 지정한다.
+    * `property`: 값을 변경할 자바 객체의 멤버변수 이름을 지정한다.
 * `<c:cout>`은 현재 JSP 페이지에 데이터를 출력하기 위해 사용하는 태그이다.
+  * `<c:out value="value" [escapeXml={trur|false}] [default="기본값"] />`
 * `<c:remove>`는 `<c:set>` 태그로 정의한 변수를 삭제하는 태그이다.
+  * `<c:remove var="var" />`
 * `<c:catch>`는 JSP 페이지 내에서 발생한 오류를 처리하는 태그이다.
+  * `<c:catch var="e"> 실행문 </c:catch>`
+
+> /edu/src/com/edu/beans/BookBean.java
+
+```java
+package com.edu.beans;
+
+public class BookBean {
+	private String title;
+	private String author;
+	private String publisher;
+}
+```
+
+> /edu/WebContent/jstl_exam/exam02.jsp
+
+```jsp
+<%@page import="com.edu.beans.BookBean"%>
+<%@ page language="java" contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+
+<% BookBean book = new BookBean(); %>
+
+<c:set target="<%= book %>"  property="title" value="The Secret" />
+<%= book.getTitle() %> <br>
+
+<c:set var="b" value="<%= book %>" />
+<c:set target="${b}"  property="author"  value="Byrne, Rhonda" />
+${b.author}
+```
+
 * `<c:if>`는 If 문장을 처리하기 위한 태그이다.
+  * `<c:if test="testCondition" var="varName" />`;
 * `<c:choose>`는 여러 개의 조건식을 사용하여 처리하고자 할 때 사용하는 태그이다.
+  * `<c:choose> 몸체 내용(<when>과 <otherwise>를 하위 태그로 구성) </c:choose>`
+
+> /edu/WebContent/jstl_exam/exam04.jsp
+
+```jsp
+<%@ page language="java" contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+<c:set var="num" value="${95}" />
+점수 <c:out value="${num}" />은
+
+<c:if test="${num>60}">
+ 합격입니다.
+</c:if>
+
+<br>
+점수 <c:out value="${num}" />은
+<c:choose>
+  <c:when test="${num>=90}">A학점입니다.</c:when>
+  <c:when test="${num>=80}">B학점입니다.</c:when>
+  <c:when test="${num>=70}">C학점입니다.</c:when>
+  <c:when test="${num>=60}">D학점입니다.</c:when>
+  <c:otherwise>F학점입니다.</c:otherwise>
+</c:choose>
+```
+
 * `<c:forEach>`는 지정된 횟수만큼 명령문을 반복 실행하는 태그이다.
+  * `<c:foreach item="collection">내용</c:foreach>`: collection 요소 수 만큼 반복
+  * `<c:foreach begin="begin" end="end" step="step">내용</c:foreach>`
 * `<c:forTokens>`는 문자열을 특정 문자로 분리한 후 분리된 개수만큼 반복 수행하는 태그이다.
+
+```jsp
+<c:forEach var="i" begin="2" end="9">
+	<c:forEach var="j" begin="1" end="9">
+         ${i} * ${j} = ${i*j} <br>
+	</c:forEach>
+	<br>
+</c:forEach>
+<c:forTokens items="소설/역사/인문/정치/미술/종료/여행/과학/만화/건강" delims="/"
+	var="token">
+    ${token}
+</c:forTokens>
+```
+
 * `<c:import>`는 외부 페이지를 현재 페이지에 삽입하거나 변수에 저장하는 태그이다.
 * `<c:url>`은 URL 정보를 생성해주는 태그이다.
 * `<c:redirect>`는 현재 실행 중인 페이지에서 다른 페이지로 이동할 때 사용하는 태그이다.
-* Properties 파일은 `name = value` 형태로 구성된 텍스트 파일이다.
+
+```jsp
+<%@ page language="java" contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+<c:import url="exam05.jsp" var="url" />
+
+==== import 파일 내용 =====
+<p>${url}
+    
+<c:url value="exam08.jsp" var="page">
+	<c:param name="id" value="guest" />
+	<c:param name="pwd" value="1004" />
+</c:url>
+<c:redirect url="${page}" />
+```
+
+#### Formatting
+
+: 날짜, 시간에 관한 형식을 처리하는 기능
+
+* Properties 파일은 `name=value` 형태로 구성된 텍스트 파일이다.
+  * 한글은 유니코드로 변환해야함
+  * `파일명_언어코드_국가코드.properties`로 파일이름을 지정하며 국가코드는 생략할 수 있다. 웹 애플리케이션에서는 서비스를 요청한 클라이언트가 사용하는 언어에 맞는  파일을 자동으로 선택해서 사용한다.
+
+> /edu/src/com/edu/bundle/msg_en.properties
+>
+> /edu/src/com/edu/bundle/msg_kr.properties
+
+```properties
+id = guest
+greeting = Hello~~
+name = welcome ~ {0}!
+
+id = \uc190\ub2d8
+greeting = \uc548\ub155\ud558\uc138\uc694
+name = {0}\ub2d8 \ud658\uc601\ud569\ub2c8\ub2e4
+```
+
 * `<fmt:setLocale>`은 로케일(locale)을 지정하는 태그이다.
 * `<fmt:setBundle>` 과 `<fmt:bundle>`는 프로퍼티 파일을 사용하는 태그이다.
 * `<fmt:message>`는 프로퍼터 파일의 값에 접근할 때 사용하는 태그이다.
 * `<fmt:requestEncoding>`은 요청정보의 인코딩 타입을 지정하는 태그이다.
+
+> /edu/WebContent/jstl_exam/exam09.jsp
+
+```jsp
+<%@ page language="java" contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt"%>
+
+<fmt:requestEncoding value="UTF-8" />
+
+Parameter : ${param.name} <br>
+
+<form action="exam09.jsp" method="post">
+	이름 : <input type="text" name="name"> 
+	<input type="submit" value="전송">
+</form>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/10d8f16a-770c-4a3a-b1b3-66aa0918a5ec)
+
+```jsp
+<%@ page language="java" contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt"%>
+
+<fmt:setLocale value="en" />
+
+<fmt:bundle basename="com.edu.bundle.msg">
+	<fmt:message key="id" />
+	<fmt:message key="greeting" />
+</fmt:bundle>
+
+<!-- guestHello~~  -->
+```
+
 * `<fmt:formatNumber>`는 숫자, 퍼센트, 현재 통화를 표시하기 위해 사용하는 태그이다.
 * `<fmt:parseNumber>`는 숫자를 파싱하거나 퍼센트 통화를 표시하기 위해 사용하는 태그이다.
 * `<fmt:formatDate>`는 날짜를 표시하는 다양한 형식을 정의하기 위해 사용하는 태그이다.
 * `<fmt:parseDate>`는 다양한 방법의 날짜를 표시하기 위해 사용하는 태그이다.
 * `<fmt:timeZone>`은 태그의 몸체에 있는 모든 태그의 타임존을 지정하는 태그이다.
 * `<fmt:setTimeZone>`은 각각의 개별 범위에 타임존을 지정하는 태그이다.
-* `<sql:setDataSource>`는 DataSource를 생성하는 태그이다.
+
+#### SQL
+
+: 데이터베이스 작업에 관한 기능
+
+* `<sql:setDataSource>`는 [DataSource](#DataSource)를 생성하는 태그이다.
 * `<sql:query>`는 select 문을 수행하기 위해 사용하는 태그이다.
 * `<sql:update>`는 select 문이 아닌 SQL 문을 사용할 때 사용하는 태그이다.
 * `<sql:transaction>`는 트랜잭션을 구현할 때 사용하는 태그이다.
+  * SQL 트랜잭션은 하나 이상의 SQL 문을 하나의 논리적 단위로 묶어서 실행하는 것을 말합니다.
+  * 트랜잭션을 사용하면 데이터베이스의 일관성과 무결성을 보장할 수 있습니다. 만약 이 트랜잭션 중 하나의 SQL 문이 실패한다면, 이전 상태로 롤백하여 데이터베이스를 일관된 상태로 유지할 수 있습니다.
 * `<sql:param>`은 sql 질의문에 사용할 파라미터를 지정하는 태그이다.
 * `<sql:dateParam>`은 soL 질의문에 사용할 날짜 파라미터를 지정하는 태그이다.
 
+```jsp
+<%@ page language="java" contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql"%>
+
+<sql:update dataSource="jdbc/myoracle">
+update test set pwd=? where id=?
+	<sql:param value="${'555'}" />
+	<sql:param value="${'aa'}" />
+</sql:update>
+
+<sql:query var="rs" dataSource="jdbc/myoracle">
+select * from test
+</sql:query>
+	<table>
+		<tr>
+			<c:forEach var="columnName" items="${rs.columnNames}">
+				<th><c:out value="${columnName}" /></th>
+			</c:forEach>
+		</tr>
+		<c:forEach var="row" items="${rs.rows}">
+			<tr>
+				<td><c:out value="${row.id}" /></td>
+				<td><c:out value="${row.pwd}" /></td>
+			</tr>
+		</c:forEach>
+</table>
+```
+
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/6a971935-fc83-4844-8642-1d29af08df06)
+
+```jsp
+<%@ page import="java.io.*,java.util.*,java.sql.*"%>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
 
 
+<sql:setDataSource var="myoracle2"
+		driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@127.0.0.1:1521:xe" 
+		user="scott"
+		password="tiger" />
+		
+<sql:transaction  dataSource="${myoracle2}">
+     <sql:update>
+     	update dept set loc='LOS ANGELES'  where deptno=10
+     </sql:update>
+     <sql:update>
+     	update dept set loc='HOUSTON'  where deptno=20
+     </sql:update>
+     <sql:update>
+     	insert into dept values(50,'MARKETING','SEATTLE')
+     </sql:update>
+</sql:transaction>		
 
+<sql:query dataSource="${myoracle2}" var="result">
+  select * from dept
+</sql:query>
 
+<table border="1">
+		<tr>
+			<th>DEPTNO</th><th>DNAME</th><th>Location</th>
+		</tr>
+		<c:forEach var="row" items="${result.rows}">
+			<tr>
+				<td><c:out value="${row.deptno}" /></td>
+				<td><c:out value="${row.dname}" /></td>
+				<td><c:out value="${row.loc}" /></td>
+			</tr>
+		</c:forEach>
+</table>
+```
 
+![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/4d413781-b403-4468-bdaa-62082cf81b51)
 
 
 
@@ -1456,9 +1693,8 @@ public class MyCustomTag4 extends SimpleTagSupport {
 
 ***
 
-12. JSTL: 40
-13. 웹 애플리케이션 디자인 패턴: 22
-14. CURD 웹 애플리케이션 프로젝트: 52
+12. 웹 애플리케이션 디자인 패턴: 22
+13. CURD 웹 애플리케이션 프로젝트: 52
 
 
 
