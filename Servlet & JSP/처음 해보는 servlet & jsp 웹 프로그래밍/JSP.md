@@ -543,6 +543,11 @@ A[JDBC\n프로그래밍] -->B[DB API] -->C[JDBC\n드라이버] -->D[DB]
 2. JDBC 드라이버: 실제 DB작업을 처리하는 파일로서 \WEB-INF/lib에 준비되어 있음
 3. DBMS: DBMS는 오라클 11g EE로 설치를 완료함
 
+> 컴파일 시 8080 에러 발생할 경우
+>
+> 1. netstat -ano | findstr 8080
+> 2. taskkill /f /pid @@@@
+
 #### JDBC 드라이버 로딩
 
 Class.forName() 메소드는 JDBC Driver 파일을 사용할 수 있도록 준비해준다.
@@ -1763,19 +1768,505 @@ Service, DAO 객체인 모델은 POJO[^6]로 구현한다.
 
 ***
 
+### CURD 웹 애플리케이션 프로젝트
 
+1. 기본 화면(index.jsp)
+2. 회원 정보 생성(memberInsert.jsp)
+3. 회원 정보 검색(memberUpdate.jsp)
+4. 회원 정보 삭제(memberDelete.jsp)
+5. 모든 회원 정보 보기(memberList.do)
 
-12. CURD 웹 애플리케이션 프로젝트: 52
+#### [패키지](https://github.com/siwoo1627/java/tree/main/Servlet%20%26%20JSP/CURD/dev)
 
+***
 
+> web.xml
 
+```xml
+	<servlet>
+		<servlet-name>front</servlet-name>
+		<servlet-class>com.dev.controller.FrontController</servlet-class>
+		<init-param>
+			<param-name>charset</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>front</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
 
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+```
 
+* `com.dev.controller.FrontController` 서블릿을 front 이름으로 웹서버에 등록한다.
+* front 이름으로 등록된 서블릿은 URL 요청 정보가 .do로 끝나는요청이 들어올 때마다 실행된다. front를 프런트 컨트롤러로 실행하기 위해 설정하는 부분이다.
+* `<welcome-file>` 루트 디렉더리 요청이 들어왔을 때 보여주는 페이지를 설정한다. http://localhost:8080/dev/로 요청이 들어오면 실행됨
 
+#### 프런트 컨트롤러
 
+> /dev/src/com/dev/controller/FrontController.java
 
+```java
+package com.dev.controller;
 
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.util.*;
 
+public class FrontController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	String charset = null;
+	HashMap<String, Controller> list = null;
+
+	@Override
+	public void init(ServletConfig sc) throws ServletException {
+		charset = sc.getInitParameter("charset");
+
+		list = new HashMap<String, Controller>();
+		list.put("/memberInsert.do", new MemberInsertController());
+		list.put("/memberSearch.do", new MemberSearchController());
+		list.put("/memberUpdate.do", new MemberUpdateController());
+		list.put("/memberDelete.do", new MemberDeleteController());
+		list.put("/memberList.do", new MemberListController());
+	}
+
+	@Override
+	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding(charset);
+
+		String url = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String path = url.substring(contextPath.length());
+
+		Controller subController = list.get(path);
+		subController.execute(request, response);
+	}
+}
+```
+
+* `public class FrontController extends HttpServlet {` 서블릿 객체를 사용하므로 model2 구조로 개발한다.
+* `request.getRequestURI();` -> `dev/memberInsert.do`
+* `request.getContextPath();` -> `/dev`
+* `contextPath.length()` -> 4
+* `url.substring(contextPath.length());` -> `/memberInsert.do`
+
+#### 컨트롤러
+
+```java
+package com.dev.controller;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public interface Controller {
+	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
+}
+```
+
+#### VO 객체
+
+> /dev/src/com/dev/vo/MemberVO.java
+
+```java
+package com.dev.vo;
+
+public class MemberVO {
+
+	private String id;
+	private String passwd;
+	private String name;
+	private String mail;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getPasswd() {
+		return passwd;
+	}
+
+	public void setPasswd(String passwd) {
+		this.passwd = passwd;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getMail() {
+		return mail;
+	}
+
+	public void setMail(String mail) {
+		this.mail = mail;
+	}
+}
+```
+
+####  출력 뷰 처리 객체
+
+: 컨트롤러에서 처리해야 하는 기능 중 마지막은 처리 결과(Output View) 페이지로 이동해야 하는 작업
+
+* model2를 따르기 때문에 하나의 서비스가 완료되면, 출력 뷰 페이지로 이동한다.
+
+> /dev/src/com/dev/controller/HttpUtil.java
+
+```java
+package com.dev.controller;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class HttpUtil {
+	public static void forward(HttpServletRequest request, HttpServletResponse response, String path) {
+		try {
+			RequestDispatcher dispatcher = request.getRequestDispatcher(path);
+			dispatcher.forward(request, response);
+		} catch (Exception ex) {
+			System.out.println("forward 오류 : " + ex);
+		}
+	}
+}
+```
+
+#### 공통 패이지
+
+> /dev/WebContent/result/home.jsp
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+
+<a href="/dev/index.jsp"> 첫화면으로 이동</a>
+```
+
+#### 회원 정보 생성
+
+> memberInsert.jsp
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<html>
+<head>
+<title>생성</title>
+</head>
+<body>
+<h3>회원 가입</h3>
+
+${error}
+
+<form action="memberInsert.do"  method="post">
+
+	ID : <input type="text"  name="id" > <br>
+	비밀번호 : <input type="password"  name="passwd" ><br>
+	이름 : <input type="text" name="name"> <br>
+	E-Mail : <input type="text" name="mail" > <br>
+
+	<input type="submit"  value="가입" >
+
+</form>
+</body>
+</html>
+```
+
+* `${error}`: `request.getAttribute("error")`와 동일하다. 현재 페이지로 다시 넘어왔을 때 오류 메시지를 출력한다.
+
+memberInsert.jsp -> memberInsertController.java -> memberInsertDao.java의 memberInsert 메서드
+
+> memberInsertController.java
+
+```java
+package com.dev.controller;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+import com.dev.service.MemberService;
+import com.dev.vo.MemberVO;
+
+public class MemberInsertController implements Controller {
+	public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// Parameter 추출
+		String id = request.getParameter("id");
+		String passwd = request.getParameter("passwd");
+		String name = request.getParameter("name");
+		String mail = request.getParameter("mail");
+
+		// 유효성 체크
+		if (id.isEmpty() || passwd.isEmpty() || name.isEmpty() || mail.isEmpty()) {
+			request.setAttribute("error", "모든 항목을 빠짐없이 입력해주시기 바랍니다!");
+			HttpUtil.forward(request, response, "/memberInsert.jsp");
+			return;
+		}
+
+		// VO객체에 데이타 바인딩
+		MemberVO member = new MemberVO();
+		member.setId(id);
+		member.setPasswd(passwd);
+		member.setName(name);
+		member.setMail(mail);
+
+		// Service 객체의 메서드 호출
+		MemberService service = MemberService.getInstance();
+		service.memberInsert(member);
+
+		// Output View 페이지로 이동
+		request.setAttribute("id", id);
+		HttpUtil.forward(request, response, "/result/memberInsertOutput.jsp");
+	}
+}
+```
+
+* VO객체에 데이터 바인딩을 통해 MemberVO 객체에 멤버변수 저장
+* service 객체 메서드 호출하여 db저장
+
+> MemberService.java
+
+```java
+package com.dev.service;
+
+import java.util.ArrayList;
+
+import com.dev.dao.MemberDAO;
+import com.dev.vo.MemberVO;
+
+public class MemberService {
+
+	private static MemberService service = new MemberService();
+	public MemberDAO dao = MemberDAO.getInstance();
+	
+	private MemberService(){}
+
+	public static MemberService getInstance() {
+		return service;
+	}
+
+	public void memberInsert(MemberVO member) {
+		dao.memberInsert(member);
+	}
+
+	public MemberVO memberSearch(String id) {
+		MemberVO member = dao.memberSearch(id);
+		return member;
+	}
+
+	public void memberUpdate(MemberVO member) {
+		dao.memberUpdate(member);
+	}
+
+	public void memberDelete(String id) {
+		dao.memberDelete(id);
+	}
+
+	public ArrayList<MemberVO> memberList() {
+		ArrayList<MemberVO> list = dao.memberList();
+		return list;
+	}
+}
+```
+
+> MemberDAO.java
+
+```java
+package com.dev.dao;
+
+import java.sql.*;
+import java.util.ArrayList;
+
+import com.dev.vo.MemberVO;
+
+public class MemberDAO {
+
+	private static MemberDAO dao = new MemberDAO();
+	private MemberDAO(){}
+
+	public static MemberDAO getInstance() {
+		return dao;
+	}
+
+	public Connection connect() {
+		Connection conn = null;
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "scott", "tiger");
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		}
+		return conn;
+	}
+
+	public void close(Connection conn, PreparedStatement ps, ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (Exception ex) {
+				System.out.println("오류 발생 : " + ex);				
+			}
+		}
+		close(conn, ps);
+	} // close
+
+	public void close(Connection conn, PreparedStatement ps) {
+		if (ps != null) {
+			try {
+				ps.close();
+			} catch (Exception ex) {
+				System.out.println("오류 발생 : " + ex);				
+			}
+		}
+
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (Exception ex) {
+				System.out.println("오류 발생 : " + ex);				
+			}
+		}
+	} // close
+
+	public void memberInsert(MemberVO member) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+
+		try {
+			conn = connect();
+			pstmt = conn.prepareStatement("insert into member values(?,?,?,?)");
+			pstmt.setString(1, member.getId());
+			pstmt.setString(2, member.getPasswd());
+			pstmt.setString(3, member.getName());
+			pstmt.setString(4, member.getMail());
+			pstmt.executeUpdate();
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		} finally {
+			close(conn, pstmt);
+		}
+	}
+
+	public MemberVO memberSearch(String id) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		MemberVO member = null;
+
+		try {
+			conn = connect();
+			pstmt = conn.prepareStatement("select * from member where id=?");
+			pstmt.setString(1, id);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				member = new MemberVO();
+				member.setId(rs.getString(1));
+				member.setPasswd(rs.getString(2));
+				member.setName(rs.getString(3));
+				member.setMail(rs.getString(4));
+			}
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		} finally {
+			close(conn, pstmt, rs);
+		}
+		return member;
+	}
+
+	public void memberUpdate(MemberVO member) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+
+		try {
+			conn = connect();
+			pstmt = conn.prepareStatement("update member set passwd=?,name=?,mail=? where id=?");
+			pstmt.setString(1, member.getPasswd());
+			pstmt.setString(2, member.getName());
+			pstmt.setString(3, member.getMail());
+			pstmt.setString(4, member.getId());
+			pstmt.executeUpdate();
+
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		} finally {
+			close(conn, pstmt);
+		}
+	}
+
+	public void memberDelete(String id) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+
+		try {
+			conn = connect();
+			pstmt = conn.prepareStatement("delete from member where id=?");
+			pstmt.setString(1, id);
+			pstmt.executeUpdate();
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		} finally {
+			close(conn, pstmt);
+		}
+	}
+
+	public ArrayList<MemberVO> memberList() {
+
+		ArrayList<MemberVO> list = new ArrayList<MemberVO>();
+
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		MemberVO member = null;
+
+		try {
+			conn = connect();
+			pstmt = conn.prepareStatement("select * from member");
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				member = new MemberVO();
+				member.setId(rs.getString(1));
+				member.setPasswd(rs.getString(2));
+				member.setName(rs.getString(3));
+				member.setMail(rs.getString(4));
+				list.add(member);
+			}
+		} catch (Exception ex) {
+			System.out.println("오류 발생 : " + ex);
+		} finally {
+			close(conn, pstmt, rs);
+		}
+		return list;
+	}
+}
+```
+
+> /result/memberInsertOutput.jsp
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<html>
+<head>
+<title>생성 결과</title>
+</head>
+<body>
+<h3> ${id} 님 가입이 완료되었습니다! </h3>
+<%@ include file="home.jsp" %> 
+</body>
+</html>
+```
 
 ***
 
