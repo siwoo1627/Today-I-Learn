@@ -61,7 +61,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
-// 서블릿 실행을 위한 uri를 "\potalSite"로 변경
+// 서블릿 실행을 위한 uri를 "/potalSite"로 변경
 @WebServlet("/portalSite")
 public class SendRedirectTestServlet extends HttpServlet {
 
@@ -87,12 +87,12 @@ public class SendRedirectTestServlet extends HttpServlet {
 
 ![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/3df6d176-e5d9-45c3-b0e1-4f0533d710fd)
 
-1. 클라이언트로부터 처리 요청받음: 요청받은 페이지가 서블릿이면 서블릿 컨테이너에 처리를 넘기고, 서블릿 컨테이너는 요청받은 서블릿을 WEB-INF/classes나 WEB-INF/lib에서 찾아서 실행 준비를 한다.
-2. 최초의 요청 여부 판단: 서블릿 컨테이너는 현재 실행할 서블릿이 최초의 요청인지 판단하고 실행할 서블릿 객체가 메모리에 없으면 최초 요청이고, 이미 있으면 최초의 요청이 아닌 것으로 판단한다.
-3. 서블릿 객체 생성: 서블릿 컨테이너는 요청받은 서블릿이 최초의 요청이라면 해당 서블릿을 메모리에 로딩하고 객체를 생성한다. 일반 자바 객체는 new명령문으로 여러 개의 객체를 언제든지 직접 생성할 수 있지만, 서블릿은 최초 요청이 들어왔을 때 한 번만 객체를 생성하고 이때 생성된 객체를 계속 사용한다.
-4. init(ServletConfig) 메소드 실행: 주로 객체의 초기화 작업이 구현되어 있다.
+1. **클라이언트로부터 처리 요청받음**: 요청받은 페이지가 서블릿이면 서블릿 컨테이너에 처리를 넘기고, 서블릿 컨테이너는 요청받은 서블릿을 WEB-INF/classes나 WEB-INF/lib에서 찾아서 실행 준비를 한다.
+2. **최초의 요청 여부 판단**: 서블릿 컨테이너는 현재 실행할 서블릿이 최초의 요청인지 판단하고 실행할 서블릿 객체가 메모리에 없으면 최초 요청이고, 이미 있으면 최초의 요청이 아닌 것으로 판단한다.
+3. **서블릿 객체 생성**: 서블릿 컨테이너는 요청받은 서블릿이 최초의 요청이라면 해당 서블릿을 메모리에 로딩하고 객체를 생성한다. 일반 자바 객체는 new명령문으로 여러 개의 객체를 언제든지 직접 생성할 수 있지만, 서블릿은 최초 요청이 들어왔을 때 한 번만 객체를 생성하고 이때 생성된 객체를 계속 사용한다.
+4. **init(ServletConfig) 메소드 실행**: 주로 객체의 초기화 작업이 구현되어 있다.
 5. 서블릿 컨테이너는 HttpServletRequest와 HttpServletResponse 객체를 생성한다.
-6. service(HttpServletRequest, HttpServletResponse) 메소드 실행: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다. 앞서 생성한 두 객체의 주소를 인자로 넘기고. service() 메소드에서는 인자로 박은 두 객체를 사용하여 프로그램을 구현한다.
+6. **service(HttpServletRequest, HttpServletResponse) 메소드 실행**: 실행하는 서블릿의 요청 순서에 상관없이 클라이언트의 요청이 있을 때마다 실행된다. 따라서 service() 메소드에서는 실제 서블릿에서 처리해야하는 내용이 구현되어 있다. 앞서 생성한 두 객체의 주소를 인자로 넘기고. service() 메소드에서는 인자로 박은 두 객체를 사용하여 프로그램을 구현한다.
 7. service() 메소드가 완료되면 클라이언트에 응답을 보내고 서버에서 실행되는 프로그램은 완료된다. 이때, requset, response객체는 소멸한다.
 
 ***
@@ -126,18 +126,18 @@ public class HeaderInfoServlet extends HttpServlet {
 }
 ```
 
-`Enumeration<String> em = req.getHeaderNames();`
-req.getHeaderNames()는 요청정보의 헤더 안에 있는 정보 중 헤더 이름들만 모아 Enumeration 객체에 담아서 반환하고, 반환된 값의 시작주소를 em 변수에 저장합니다. Enumeration 객체도 java. util 패키지에 있으며, 배열처럼 데이터 그룹으로 구성된 Colletion 객체입니다. 제네릭(Generics)을 이용 하여 Enumeration String) 객체 안에 저장되는 데이터의 타입을 String으로 선언하고 있습니다.
-제네릭은 Collection 객체에 담기는 데이터의 타입을 Collection 객체 생성 시 미리 선언하는 기능입니다. ArrayList<String> List = new ArrayList<String>(): 이렇게 선언하면 List 안에는 String 타입의 데이터만 저장하겠다는 의미여서 String이 아닌 데이터를 저장하면 오류가 발생합니다. 또한, 추출할 때는 자동으로 String 타입으로 변환됩니다.
-Enumertion 객제가 Set. List, Map 계열의 Collection 객제와 다른 점은 그룹의 데이터에 접근할 때 인덱스나 키가 아닌 커서(cursor)라는 개념으로 접근한다는 사실입니다. rect.setHendervame() 메소 드가 헤더 정보의 이름들을 Scing 타입으로 Enumtration 제체에 담아 반원하면 Ehumeration 객지 의 첫 번째 요소 앞에 커서가 위치합니다.
+* `Enumeration<String> em = req.getHeaderNames();`
+  : req.getHeaderNames()는 요청정보의 헤더 안에 있는 정보 중 헤더 이름들만 모아 Enumeration 객체에 담아서 반환하고, 반환된 값의 시작주소를 em 변수에 저장합니다. Enumeration 객체도 java. util 패키지에 있으며, 배열처럼 데이터 그룹으로 구성된 Colletion 객체입니다. 제네릭(Generics)을 이용 하여 Enumeration String) 객체 안에 저장되는 데이터의 타입을 String으로 선언하고 있습니다.
+  제네릭은 Collection 객체에 담기는 데이터의 타입을 Collection 객체 생성 시 미리 선언하는 기능입니다. `ArrayList<String> List = new ArrayList<String>();`이렇게 선언하면 List 안에는 String 타입의 데이터만 저장하겠다는 의미여서 String이 아닌 데이터를 저장하면 오류가 발생합니다. 또한, 추출할 때는 자동으로 String 타입으로 변환됩니다.
+  Enumertion 객제가 Set. List, Map 계열의 Collection 객제와 다른 점은 그룹의 데이터에 접근할 때 인덱스나 키가 아닌 커서(cursor)라는 개념으로 접근한다는 사실입니다. rect.setHendervame() 메소 드가 헤더 정보의 이름들을 Scing 타입으로 Enumtration 제체에 담아 반원하면 Ehumeration 객지 의 첫 번째 요소 앞에 커서가 위치합니다.
 
-`while (em.hasMoreElements ()) {`
-em.hasMoreElements()는 em이 가리키는 Enumeration 객체의 커서 다음에 데이터가 있는지 없는 지를 판단하여 있으면 true, 없으면 false를 반환합니다. 커서가 마지막 요소에 있을 때 비로소 false를 반환하고 while 반복문을 빠져나옵니다.
-`String s = em.nextElement ();`
-em.nextElement()는 em의 커서 다음에 있는 요소를 반환하고 커서를 다음 요소로 이동시킵니다. em 변수를 선언할 때 Enumeration String>으로 선언했으므로 반환하는 값은 String 타입이며, 반환값을 String s 변수에 저장합니다.
+* `while (em.hasMoreElements ()) {`
+  : em.hasMoreElements()는 em이 가리키는 Enumeration 객체의 커서 다음에 데이터가 있는지 없는 지를 판단하여 있으면 true, 없으면 false를 반환합니다. 커서가 마지막 요소에 있을 때 비로소 false를 반환하고 while 반복문을 빠져나옵니다.
+* `String s = em.nextElement ();`
+  : em.nextElement()는 em의 커서 다음에 있는 요소를 반환하고 커서를 다음 요소로 이동시킵니다. em 변수를 선언할 때 Enumeration String>으로 선언했으므로 반환하는 값은 String 타입이며, 반환값을 String s 변수에 저장합니다.
 
-`out.printIn(s + " : " + req. getHeader(s) + "br/)");`
-s 변수에는 요청정보의 헤더 이름이 들어있습니다. 헤더 이름을 gettleader( ) 메소드의 인자로 지정하 면 해당 이름을 찾아 값을 반환합니다. 즉, getHeader()는 헤더의 값을 추출할 때 사용하는 메소드입니다.
+* `out.printIn(s + " : " + req. getHeader(s) + "br/)");`
+  : s 변수에는 요청정보의 헤더 이름이 들어있습니다. 헤더 이름을 gettleader( ) 메소드의 인자로 지정하 면 해당 이름을 찾아 값을 반환합니다. 즉, getHeader()는 헤더의 값을 추출할 때 사용하는 메소드입니다.
 
 >  Enumeration과 Iterator는 그룹안에 있는 요소에 접근할 때 인덱스나 키로 접근하는 것이 아니고, 커서의 개념으로 접근한다는 점이다.
 
@@ -218,7 +218,7 @@ req.setCharacterEncoding("UTF-8"); // POST 방식 한글 인코딩 처리
 
 ***
 
-- EUC-KR: EUC-KR은 한글과 영문만 지원하는 문자코드로서 한 글자를 표현할 때 2Byte를 사용합니다. 단점은 한글 영문 을 제외한 다른 나라 언어는 지원하지 않으므로 다국어 지원이 안 된다는 것이죠, 따라서 국내 사용자만을 대상으로 하는 서 비스에 적합합니다. 장점은 3Byte로 표현되는 UTF-8보다 2Byte로 표현되기 때문에 용량을 적게 차지한다는 것입니다.
+- EUC-KR: EUC-KR은 한글과 영문만 지원하는 문자코드로서 한 글자를 표현할 때 2Byte를 사용합니다. 단점은 한글 영문을 제외한 다른 나라 언어는 지원하지 않으므로 다국어 지원이 안 된다는 것이죠, 따라서 국내 사용자만을 대상으로 하는 서비스에 적합합니다. 장점은 3Byte로 표현되는 UTF-8보다 2Byte로 표현되기 때문에 용량을 적게 차지한다는 것입니다.
 - UTF-8: 한글, 영문은 물론 일본어. 중국어 등 전 세계 모든 언어를 표현할 수 있습니다. 따라서 다국어 서비스에 적합합니다.
   그런데 UTF-8의 경우 영어는 1Byte. 한글은 보통 3byte로 표현하기 때문에 EUC-KP보다 용량을 많이 차지한다는 특징이 있습니다. UTF-8 방식은 구글. 페이스북, 트위터 등 세계 주요 웹사이트 1만 개 중 51% 정도 사용하는 등 사용도가 높으며, 여러 가지 웹 관련 최신 기술들이 UTF-8 방식을 기본적으로 지원하고 있습니다.
 
@@ -289,7 +289,7 @@ HTTP는 비연결형, 무상태로 동작하는 프로토콜이므로 상태정�
 > 무상태(Stateless): 클라이언트와 서버 간의 연결을 클라이언트 요청이 있을 때마다 새롭게 연결하는 방식, 서버가 클라이언트에서 응답을 보내는 즉시 끊어짐
 
 - 클라이언트 측에 저장 기술: 웹 브라우저에 저장
-  - `javax.xervlet.http.Cookie`
+  - `javax.servlet.http.Cookie`
 - 서버 측에 저장 기술: 서버의 힙 메모리 영역에 만들어진 객체에 상태정보를 저장
   - `javax.servlet.ServletContext`
   - `javax.servlethttp.HttpSession`
@@ -317,6 +317,29 @@ ServletContext sc = this.getServletContext();
 ```
 
 ServletContext 객체는 웹 애플리케이션 단위로 사용되는 객체로, 동일한 웹 애플리케이션 안에 모든 페이지에서 동일한 ServletContext 객체를 사용한다. 그래서  ServletContext 객체를 이용하여 웹 애플리케이션 단위로 정보를 유지함으로써 공유할 수 있다.
+
+> context: 어떤 행위(Task. Method..)를 위한 정보의 통칭이다.
+>
+> 접수원이 당신에게 이름을 묻는다면, 그것은 접수를 시작하기 위해 필요한 정보들일 것입니다. 앞의 예에서는 당신의 이름은 context적인 정보가 되겠죠. 치과를 방문한다는 context에서 당신은 이빨을 뽑기위해 당신의 이름을 제공해야하는거죠 
+>
+> 이번엔 은행에 간다고 해봅시다.
+>
+> 은행에서 당신은 100달러를 인출하려 합니다. 은행원은 당신에게 돈을 주기전에 당신의 정체성을 확립해야하므로, 아마 당신은 그들에게 운전면허증을 보여주거나, ATM카드를 긁거나 PIN 번호를 입력해야 할 것입니다. 이와 같이 당신이 제공하는 것이 context입니다. 은행원은 받은 정보를 통해 일을 다음단계를 진행합니다. 은행원은 당신에게 어떤 계좌에서 인출할 것인지 물어볼 것입니다. 그때 당신이 “내 예금 계좌요” 라고 대답한다면, 그것은 추가적인 context가 됩니다. 
+>
+> 더 많은 context를 당신이 제공할수록, 더 많은 지식을 다른 편에 제공할수록, 상대방이 당신의 요청에 대처하는데 도움을 주는 것입니다. 어떨 때는 context는 선택적입니다.(구글 검색에서 더 많은 단어를 입력할수록 더 정확한 결과가 나온다.) 그리고 때때는 필수적입니다(ATM에 PIN 번호를 입력한는 것) 어떤 방법이든 context의 정보는 일이 진행되는 도움을 주게됩니다.
+>
+> 이제 100달러를 가지고 당신이 비행기 표를 끊어 입안이 낫는 동안 어디 따뜻한 곳으로 놀러간다고 해봅시다.
+>
+> 당신은 화창한 도착지에 도착합니다. 하지만 당신의 가방은 그러지 못합니다. 가방은 공항 시스템 어디엔가에서 길을 잃은 거죠. 그래서 당신은 “짐 요청 티켓”(바코드가 찍힌 스티커)를 들고 “분실물 센터”로 갑니다. 담당자는 가장먼저 당신에게 짐의 바코드가 적힌 티켓을 요구할겁니다. 이게 **필수 context**의 한 예입니다. 
+>
+> 그러나 분실물 센터 담당자는 당신에게 가방에 대한 추가적인 정보를 물어볼 것입니다. 더 쉽게 찾기 위해서죠. 그들은 “색깔은 뭐죠? 크기는 어떻죠? 바퀴가 있나요? 단단한가요 부드럽나요?” 사실 그들은 그런 정보가 필수적 이진 않지만, 제공한다면, 검색 범위를 좁혀주긴 할 테죠. 그러면 더 빨리 찾을 수 있고, 이게 **선택적 context**입니다. 
+>
+> 가장 중요한 부분입니다. 많은 소프트웨와 API들에서 함수의 명세의 실제 매개변수로 required context를 요구합니다. Optional context는 다른 곳에서, 유연한 어떤 값도 담을 수 있는(값이 없을 수도 있는)키-값 맵 같은 거나, 필요할 때마다 어디서든 접근할 수 있는 Thread-local storage에서 사용합니다..
+>
+>
+> 위의 예제는 현실 세계에서의 얘기이긴 하지만 컴퓨터 공학 분야에도 쉽게 적용할 수 있어요. 예를 들면, HTTP 헤더들은 context적인 정보를 담고 있어요. 각 헤더는 어떤 용청이 발생했는지에 대한 내용을 담고 있죠. 또한한 two-phase commit process 의 일부로 전역 트랜잭션 아이디를 보낸다면, 트랜잭션 아이디는 context가 됩니다. 아이디는 테스크의 전반적인 정보이므로, 트랜젝션 매니저가 작업을 조정하는데 큰 도움이 됩니다.
+>
+> [출처:오늘 걷지 않으면 내일 뛰어야 합니다:티스토리](https://pflb.tistory.com/entry/Context가-뭐죠)
 
 ***
 
@@ -362,7 +385,7 @@ public class CookieTest1Servlet extends HttpServlet {
 ```
 
 **쿠키 생성 : Cookie(string name, String value)**
-쿠키를 생성하려면 javax.servlet.http.Cookie 객체를 생성합니다. Cookie 객체는 두 개의 String을 인자로 인자로 받는 생성자가 선언되어 있는데요. 
+쿠키를 생성하려면 `javax.servlet.http.Cookie` 객체를 생성합니다. Cookie 객체는 두 개의 String을 인자로 인자로 받는 생성자가 선언되어 있는데요. 
 첫 번째 인자가 쿠키의 name으로 지정되며, 두 번째 인자가 쿠키의 value로 지정됩니다.
 
 **쿠키 유효 시간 설정 : setMaxAge(int expiry)**
@@ -374,7 +397,7 @@ public class CookieTest1Servlet extends HttpServlet {
 
 **쿠키 도메인 설정 : setDomain(String domain)**
 쿠키는 기본적으로 전송된 서버에서만 읽어 들여 사용할 수 있습니다. 그런데 어떤 웹 서비스는 하나의 서버에서만 전체 서비스를 하는 것이 아니라, 여러 대의 서버가 연결되어 서비스를 처리합니다. 이러한 웹 서비스에서는 쿠키의 도메인 설정을 통해 하나의 서버에서 클라이언트로 전송된 쿠키를 다른 서버에서 읽어 들여 사용할 수 있습니다. 이때 사용하는 메소드가 setDomain()입니다.
-setDomain() 메소드의 인자값으로 서버의 도메인을 지정하는데 `www.edu.com`처럼 지정하면 정확히 일치하는 도메인에서만 쿠키를 읽어 들일 수 있고, `.edu.com`처럼 지정하면 `it. edu.com`이나 `math,edu.com`처럼 `edu.com`이 포함된 모든 도메인 서버에서 쿠키를 읽어 들일 수 있습니다.
+setDomain() 메소드의 인자값으로 서버의 도메인을 지정하는데 `www.edu.com`처럼 지정하면 정확히 일치하는 도메인에서만 쿠키를 읽어 들일 수 있고, `.edu.com`처럼 지정하면 `it.edu.com`이나 `math.edu.com`처럼 `edu.com`이 포함된 모든 도메인 서버에서 쿠키를 읽어 들일 수 있습니다.
 
 **쿠키 전송 : addCookie(Cookie cooke)**
 생성된 쿠키를 클라이언트로 보낼 때는 HttpServetResponse 객체의 addCooktel( ) 메소드를 이 용합니다. addCookie() 메소드의 인자값으로 전송할 Cookie 객체를 설정하면 쿠키에 설정된 내용 으로 클라이언트 쪽으로 쿠키가 전송됩니다.
@@ -473,7 +496,7 @@ public class SessionTestServlet extends HttpServlet {
 
 ![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/7c323dd9-1e00-43c6-b483-babbe8a3ef30)
 
-* [로그인/로그아웃 세션 구현](https://github.com/siwoo1627/java/blob/main/Servlet/%EB%A1%9C%EA%B7%B8%EC%9D%B8%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83/%EB%A1%9C%EA%B7%B8%EC%9D%B8%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83.md)
+* [로그인/로그아웃 세션 구현](https://github.com/siwoo1627/java/tree/main/Servlet%20%26%20JSP/%EB%A1%9C%EA%B7%B8%EC%9D%B8%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83)
 
 | 구분             | 쿠키       | 세션                       |
 | ---------------- | ---------- | -------------------------- |
@@ -486,6 +509,12 @@ public class SessionTestServlet extends HttpServlet {
 #### HttpServletRequest
 
 : A페이지와 B페이지가 동시에 실행되거나 A페이지를 통해 B페이지가 실행될 경우 HttpServletRequset 객체가 유지되므로 해당 객체로 정보 공유함
+
+* 사용자가 서버쪽으로 데이터를 요청할 때, 요청에 대한 기능과 속성들을 가지고 있는 객체이다.(HttpServletRequest req)
+
+#### HttpServletResponse
+
+: 반대로 서버에서 만든 데이터를 사용자에게 넘겨줄 때 사용하는 객체(HttpServletResponse resp)
 
 > service() 메소드가 실행되기 전에 자동으로 생성되고, service() 메소드가 종료되면 자동을 소멸하는 객체
 
@@ -527,7 +556,7 @@ public class DispatcherTest1Servlet extends HttpServlet {
 }
 ```
 
-* [책정보](https://github.com/siwoo1627/java/blob/main/Servlet/%EC%B1%85%EC%A0%95%EB%B3%B4/bookInput.html)
+* [책정보](https://github.com/siwoo1627/java/tree/main/Servlet%20%26%20JSP/%EC%B1%85%EC%A0%95%EB%B3%B4)
 
 ***
 
@@ -705,7 +734,7 @@ public class FlowFilterThree implements Filter {
 </listener>
 ```
 
-`<listner>`: 이벤트 핸들러를 상속받아 메소드를 재정의한 객체, 즉 리슨너 객체를 등록할 때 사용하는 태그
+`<listner>`: 이벤트 핸들러를 상속받아 메소드를 재정의한 객체, 즉 리스너 객체를 등록할 때 사용하는 태그
 
 `<listener-class>`: `<listener>` 태그를 사용할 때 반드시 지정해야 하는 태그로서, 실제 리스너 객체의 클래스 이름을 패키지 이름과 함께 정확하게 지정함
 
@@ -793,9 +822,19 @@ public class TestServletContextListener implements ServletContextListener {
 }
 ```
 
+![image](https://github.com/siwoo1627/java/assets/114638386/52e27c59-d9bb-486c-9a95-654584fb192e)
+
+> 출처: https://dololak.tistory.com/616
+
 #### @WebListener 어노테이션
 
 @WebListener 추가 시 web.xml에 작업 안해도됨
+
+```java
+@WebListener
+public class DataSourceListener implements ServletContextListener {
+...
+```
 
 ***
 
