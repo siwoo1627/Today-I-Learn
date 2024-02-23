@@ -47,7 +47,7 @@ JSP 기술은 템플릿 데이터에 동적인 데이터를 끼워 넣을 수 �
 
 추상화는 객체지향 프로그램에서 사용하는 용어로서 세부 구현은 숨기고 기능을 사용할 수 있도록 구현 하는 것을 의미하며, 재사용성을 높이는 기술입니다. ISP 기술은 이런 기능의 추상화를 위해 다음 두 가지 메커니즘을 제공합니다.
 
-* 자바빈즈(JavaBeans) 컴포넌트 아키텍처: 컴포넌트라는 개념은 규격에 맞게 조각들을 만들어 놓고 조각들을 이용해 완성한 하나의 제품을 만들자는 것인데요. 자바에서도 규격에 맞는 조각이 있는데 이것을 자바빈즈(JavaBeans)라고 하며, JSP에서 사용하는 컴포넌트는 JSP 자바빈즈라고 합니다. 자바빈즈를 이용하면 재사용성이 높은 웹 애플리케이션을 개발할 수 있습니다.
+* 자바빈즈(JavaBeans) 컴포넌트 아키텍처: **컴포넌트라는 개념은 규격에 맞게 조각들을 만들어 놓고 조각들을 이용해 완성한 하나의 제품을 만들자**는 것인데요. 자바에서도 규격에 맞는 조각이 있는데 이것을 자바빈즈(JavaBeans)라고 하며, JSP에서 사용하는 컴포넌트는 JSP 자바빈즈라고 합니다. 자바빈즈를 이용하면 재사용성이 높은 웹 애플리케이션을 개발할 수 있습니다.
 
 * 태그 라이브러리: 자주 사용하는 기능을 매번 구현하는 것이 아니라, JSP 태그로 만들어 사용한다면 한 번의 작성으로 여러 곳에서 사용할 수 있어 재사용성을 높일 수 있습니다.
 
@@ -467,7 +467,7 @@ public class HelloBean {
   * `id`
   * `class`
 
-```
+```java
 HelloBean hello = new HelloBean();
 => <jsp:useBean class="com.edu.beans.HelloBean" id="hello" />
 ```
@@ -478,7 +478,7 @@ HelloBean hello = new HelloBean();
   * `property`: 추출하려는 자바빈즈 객체의 멤버변수 이름을 지정
 
 
-```
+```java
 hello.getName();
 => <jsp:getProperty property="name" name="hello" /><br>
 ```
@@ -491,7 +491,7 @@ hello.getName();
   * `param`: 질의 문자열에서 param 속성에 할당된 값과 같은 name의 값으로 자바빈의 속성값을 설정
     * 설정값 생략할 경우 질의 문자열에서 `property`와 동일한 멤버변수를 가져감
 
-```
+```java
 hello.setName("Amy");
 => <jsp:setProperty property="name" name="hello" value="Amy" />
 
@@ -733,27 +733,23 @@ Statement와 PreparedStatement의 executeUpdate(), executeQuery() 메소드를 �
 
 ![image](https://github.com/siwoo1627/Today-I-Learn/assets/114638386/9203816f-a35e-441d-8e72-617769714d8d)
 
-`InitialContext ic = new InitialContext();`
-Connection Pool에 접근하려면 JNDI 서비스를 사용해야 합니다. JNDI는 서비에서 관리하고 있는 리소스에 대한 정보를 알고 있고 특정 리소스를 찾아서 사용할 수 있도록 객체를 반환해주는 역할을 합니다. JNDI 서버 역할을 하는 객체를 생성합니다. 리소스가 로컬에 있을 때는 단순히 InitialContext  객체만 생성하면 됩니다.
+* `InitialContext ic = new InitialContext();`
 
+: Connection Pool에 접근하려면 JNDI 서비스를 사용해야 합니다. JNDI는 서비에서 관리하고 있는 리소스에 대한 정보를 알고 있고 특정 리소스를 찾아서 사용할 수 있도록 객체를 반환해주는 역할을 합니다. JNDI 서버 역할을 하는 객체를 생성합니다. 리소스가 로컬에 있을 때는 단순히 InitialContext  객체만 생성하면 됩니다.
 
-
-`DataSource ds = (DataSource) ic.lookup("java:comp:env/jdbc/myoracle");`
+* `DataSource ds = (DataSource) ic.lookup("java:comp:env/jdbc/myoracle");`
 
 `ic.lookup()`은 리소스를 찾은 후 리소스를 사용할 수 있도록 객체를 반환해주는 메소드입니다. lookup() 메소드의 인자값으로는 찾으려는 리소스의 등록된 이름을 지정합니다. 우리가 찾으려는 리소스의 이름은 `jdbc/myoracle`입니다. 그래서 `lookup("jdbc/myoracle")`으로 해야 하는데 `lookup("java: comp/env/jdbc/myoracle")`을 지정했습니다. 이것은 WAS로 톰켓을 이용하기 때문입니다. 톰캣에서는 리소스를 관리하는 가상의 디렉터리가 있는데. 경로가 `java:comp/env`입니다. 그래서 톰캣을 사용할 때는 리소스 이름 앞에 `java.comp/env`의 경로를 지정해 주어야 합니다.
 
 lookup() 메소드가 반환하는 객체의 타입은 Object이기 때문에 원래 리소스 타입으로 타입 변환 작업을 해야 합니다. `(Datasource) ic.lookup("java: comp/env/jdbc/myoracle");`는 반환받은 값을 DataSource로 타입 변환을 하고 있습니다. DataSource 객체는 Connection Pool 리소스의 데이터 타입입니다.
 
+* `Connection conn = ds.getConnection();`
 
-
-`Connection conn = ds.getConnection();`
 ds 변수는 DataSource입니다. DataSource객체의 getConnection()는 Connection Pool에 준비 된 Connection 객체를 빌려오는 메소드입니다. 빌려온 Connection을 conn으로 받았습니다.
 
 ***
 
 ### EL(Expression Language)
-
-
 
 EL은 서블릿 기능을 JSP보다 간단하게 표현할 수 있는 기술이다.
 
@@ -766,8 +762,6 @@ EL은 산술, 논리, 비교, empty 연산자가 있다.
 EL은 요청정보, scope에 관한 내장 객체를 지원한다.
 
 EL은 scope에 저장된 데이터를 `${ 이름 }`으로 간단하게 추출할 수 있다.
-
-
 
 ```jsp
 <%@ page contentType="text/html;charset=UTF-8"%>
