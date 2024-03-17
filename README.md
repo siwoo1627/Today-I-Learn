@@ -32,10 +32,6 @@
 
 * [스프링 부트 3 백엔드 개발자 되기:자바편](https://github.com/siwoo1627/Today-I-Learn/blob/main/Spring%20boot/%EC%8A%A4%ED%94%84%EB%A7%81%20%EB%B6%80%ED%8A%B8%203%20%EB%B0%B1%EC%97%94%EB%93%9C%20%EA%B0%9C%EB%B0%9C%EC%9E%90%20%EB%90%98%EA%B8%B0.md)
 
-## HTTP Network
-
-* [그림으로 배우는 HTTP & Network Basic](https://github.com/siwoo1627/Today-I-Learn/blob/main/HTTP%20Network/%EA%B7%B8%EB%A6%BC%EC%9C%BC%EB%A1%9C%20%EB%B0%B0%EC%9A%B0%EB%8A%94%20HTTP%20%26%20Network%20Basic.md)
-
 ## Infra
 
 * [그림으로 공부하는 IT인프라 구조](https://github.com/siwoo1627/Today-I-Learn/blob/main/Infra/%EA%B7%B8%EB%A6%BC%EC%9C%BC%EB%A1%9C%20%EA%B3%B5%EB%B6%80%ED%95%98%EB%8A%94%20IT%20%EC%9D%B8%ED%94%84%EB%9D%BC%20%EA%B5%AC%EC%A1%B0.md)
